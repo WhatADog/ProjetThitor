@@ -26,11 +26,11 @@ public class CramerShoup {
 				}
 			}
 		}
-
+		/*
 		for (int i=0; i<nb_premiers.size(); i++) {
 			System.out.println(nb_premiers.get(i));
 		}
-
+		*/
 		return nb_premiers;
 
 	}
@@ -43,8 +43,38 @@ public class CramerShoup {
 				return false;
 			}
 		}
-		
+
 		return true;
+	}
+
+	public static boolean verifElemGenerateur(int n, int a){
+
+		if (a==0) {
+			return false;
+		}
+
+		int p = n-1;
+		ArrayList<Integer> nb_composants = cribleErathostene(p);
+		int limit = p / getPlusPetitFacteurPremier(p, nb_composants);
+
+		int a_Generated = a;
+		for (int i=1; i<=limit ; i++) {
+			System.out.println(a_Generated);
+			a_Generated = (a_Generated*a)%n;
+			if(a_Generated==1){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static int getPlusPetitFacteurPremier(int p, ArrayList<Integer> facteursPremiers){
+		for (int i =0; i<facteursPremiers.size() ; i++) {
+			if (p%facteursPremiers.get(i)==0) {
+				return facteursPremiers.get(i);
+			}
+		}
+		return 0;
 	}
 
 	public static void main(String[] args) {
