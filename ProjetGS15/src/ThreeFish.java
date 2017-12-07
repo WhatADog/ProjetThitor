@@ -128,9 +128,77 @@ public class ThreeFish {
 				System.out.println("Cle["+n+"] : " + clesTournees[i][n]);
 			}
 		}
+		// Message à chiffrer
+		String messageAChiffrerChaine = "Un texte qui va faire 32 chars !";
+		// On le passe en binaire
+		String messageAChiffrer = ChaineToBinaire(messageAChiffrerChaine).toString();
+		// On le découpe en blocs de 64 bits
+		String[] tabTempo = messageAChiffrer.split("");
+		String[] tabAChiffrer = new String[N];
+		
+		for(int i = 0; i < N; i++){
+			String tempo = "";
+			for(int j = i*64; j < 64*(i+1); j++){
+				tempo += tabTempo[j];
+			}
+			tabAChiffrer[i] = tempo;
+		}
+		
+		// Boucle qui va gérer les 76 tournées
+		for(int i = 0; i < 20; i++){
+			for(int j = 0; j <N; j++){
+				// On xor le message avec les clés de tournées
+				tabAChiffrer[j] = xor(tabAChiffrer[j],clesTournees[i][j]);				
+			}
+			// On effectue 4 mix + Permute
+			for(int k = 0; k < 4; k++){
+				Substitution(tabAChiffrer);
+				for(int l = 0; l < tabAChiffrer.length; l++){
+					Permutation(tabAChiffrer[l]);
+				}
+			}
+		}
+		// On remet le tabAChiffrer sous forme de String
+		messageAChiffrer = "";
+		for (int i = 0; i < tabAChiffrer.length; i++){
+			messageAChiffrer += tabAChiffrer[i];
+		}
+		// On peut convertir en chaine de caractères le message chiffré
+		StringBuilder sbChiffré = new StringBuilder(messageAChiffrer);
+		String messageChiffré = BinaireTochaine(sbChiffré);
+		System.out.println("Message avant chiffrement : " + messageAChiffrerChaine);
+		System.out.println("Le message chiffré est : " + messageChiffré);
 		return null;
 	}
+	// Fonction qui va gérer la substitution entre 2 mots de 64 bits
+	public static String[] Substitution(String[] tabMessage){
+		for(int i = 0; i < tabMessage.length-1; i += 2){
+			tabMessage[i] = AdditionModulaire(tabMessage[i], tabMessage[i+1]);
+			tabMessage[i+1] = xor(tabMessage[i], PermutationCirculaire(tabMessage[i+1]));
+		}
+		return tabMessage;
+	}
 	
+	// Fonction qui va réaliser une permutation circulaire sur un mot
+	private static String PermutationCirculaire(String str1) {
+		String[] tab1 = str1.split("");
+		String result = "";
+		for(int i = 0; i < tab1.length; i++){
+			result += tab1[(i+49)%tab1.length];
+		}
+		return result;
+	}
+	
+	// Fonction de permutation qui va inverser les elements du mot ([1 ... 64] => [64 ... 1])
+	private static String Permutation(String str1){
+		String[] tab1 = str1.split("");
+		String resultat = "";
+		for (int i = 0; i < tab1.length; i++){
+			resultat += tab1[tab1.length-1-i];
+		}
+		return resultat;
+	}
+
 	private static String AdditionModulaire(String str1, String str2) {
 		// TODO Auto-generated method stub
 		boolean retenue = false;
@@ -241,7 +309,7 @@ public class ThreeFish {
 
 	public static void main(String[] args) {
 		// On choisi ici entre 256, 512 ou 1024 pour la génération de la clé
-		String cle = GenerationCle(1024);
+		String cle = GenerationCle(256);
 		// Le nombre de découpage qu'on va faire sur la clé
 		int N = 0;
 		switch(cle.length()){
