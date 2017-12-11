@@ -92,7 +92,7 @@ public class ThreeFish {
 		return sousCles;		
 	}
 	
-	// Fonction qui va générer toutes les clés de tournée
+	// Fonction qui va générer toutes les clés de tournée et réaliser le chiffrement / déchiffrement
 	public static String[] GenerationClesTournees (String[] sousCles, String[] tweaks){
 		// sousCles est notre tableau qui contient les sous clés, sa taille est donc N + 1 actuellement
 		int N = sousCles.length-1;
@@ -124,8 +124,9 @@ public class ThreeFish {
 				System.out.println("Cle["+n+"] : " + clesTournees[i][n]);
 			}
 		}
+		
 		// Message à chiffrer
-		String messageAChiffrerChaine = "Bonjour je m'appelle Victor mais cette information est confidentielle, je ne sais pas pourquoi j'obtiens des espaces dans mon chiffrement c'est bizarre. On va continuer à faire des tests pour voir si quelque chose ressort de la.";
+		String messageAChiffrerChaine = "J'ai l'impression que le chiffrement et le déchiffrement marchent mais que la conversion de binaire à chaine a quelques problème. Ca marche ?";
 		System.out.println("Taille du message à chiffrer : " + messageAChiffrerChaine.length());
 		// On le passe en binaire
 		String messageAChiffrer = ChaineToBinaire(messageAChiffrerChaine).toString();
@@ -152,7 +153,7 @@ public class ThreeFish {
 		for (int i = 0; i < nombreSousMessage; i++){
 			for(int j = 0; j < N; j++){
 				String tempo = "";
-				for(int k = j*64; k < 64*(j+1); k++){
+				for(int k = (j*64)+(i*64*N); k < 64*(j+1)+(i*64*N); k++){
 					// S'il reste quelque chose dans tabTempo
 					if(k <= tabTempo.length-1){
 						tempo += tabTempo[k];
@@ -167,6 +168,7 @@ public class ThreeFish {
 		}	
 		
 		// On affiche le tableau avec le message à chiffrer
+		System.out.println("Avant chiffrement");
 		for (int i = 0; i < tabAChiffrer.length; i ++){
 			for(int j = 0; j < N; j++){
 				System.out.println("Tab[" + i + "]["+ j +"] : " + tabAChiffrer[i][j]);
@@ -183,9 +185,9 @@ public class ThreeFish {
 				}
 				// On effectue 4 mix + Permute
 				for(int l = 0; l < 4; l++){
-					Substitution(tabAChiffrer[i]);
+					tabAChiffrer[i] = Substitution(tabAChiffrer[i]);
 					for(int m = 0; m < N; m++){
-						Permutation(tabAChiffrer[i][m]);
+						tabAChiffrer[i][m] = Permutation(tabAChiffrer[i][m]);
 					}
 				}
 			}
@@ -212,6 +214,105 @@ public class ThreeFish {
 		System.out.println("Message avant chiffrement : " + messageAChiffrerChaine);
 		System.out.println("Le message chiffré est : ");
 		System.out.println(messageChiffré);
+		
+		
+		// Message à déchiffrer
+		String messageADechiffrerChaine = messageChiffré;
+		System.out.println("Taille du message à chiffrer : " + messageADechiffrerChaine.length());
+		// On le passe en binaire
+		String messageADechiffrer = messageAChiffrer;
+		//String messageADechiffrer = ChaineToBinaire(messageADechiffrerChaine).toString();
+		// On le découpe en blocs de 64 bits
+		String[] tabTempo2 = messageADechiffrer.split("");		
+		
+		// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
+		int tailleMessageADechiffrer = tabTempo2.length;
+		System.out.println("Taille du message : "+ tailleMessageADechiffrer);
+		// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
+		int tailleSousMessageADechiffrer = N * 64;
+		System.out.println("Taille des mots : " + tailleSousMessageADechiffrer);
+		// On calcule le nombre de sous message que l'on va avoir
+		int nombreSousMessageADechiffrer = tailleMessageADechiffrer / tailleSousMessageADechiffrer;
+		if((tailleMessageADechiffrer%tailleSousMessageADechiffrer) != 0){
+			nombreSousMessageADechiffrer += 1;
+		}
+		System.out.println("Nombre de sous message nécessaires : " + nombreSousMessageADechiffrer);
+		// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
+		String[][] tabADechiffrer = new String[nombreSousMessageADechiffrer][N];
+		
+		// On rempli le tableau avec le message à déchiffrer
+		// Pour chaque sous message, on découpe en blocs de 64bits et on fait du bourrage si necessaire
+		for (int i = 0; i < nombreSousMessageADechiffrer; i++){
+			for(int j = 0; j < N; j++){
+				String tempo2 = "";
+				for(int k = (j*64)+(i*64*N); k < 64*(j+1)+(i*64*N); k++){
+					// S'il reste quelque chose dans tabTempo
+					if(k <= tabTempo2.length-1){
+						tempo2 += tabTempo2[k];
+					}
+					// Sinon on bourre avec des 0
+					else{
+						System.out.println("On rentre dans le bourrage");
+						tempo2 += "0";
+					}
+				}
+				tabADechiffrer[i][j] = tempo2;
+			}			
+		}	
+		
+		// On affiche le tableau avec le message à déchiffrer
+		System.out.println("Message à déchiffrer :");
+		for (int i = 0; i < tabADechiffrer.length; i ++){
+			for(int j = 0; j < N; j++){
+				System.out.println("Tab[" + i + "]["+ j +"] : " + tabADechiffrer[i][j]);
+			}
+		}
+		
+		// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
+		// Pour chaque mot on va appliquer le déchiffrement : ECB
+		for (int i = 0; i < nombreSousMessageADechiffrer; i++){
+			for(int j = 0; j < 20; j++){				
+				// On effectue 4 mix + Permute
+				for(int l = 0; l < 4; l++){
+					for(int m = 0; m < N; m++){
+						tabADechiffrer[i][m] = Permutation(tabADechiffrer[i][m]);
+					}
+					tabADechiffrer[i] = AntiSubstitution(tabADechiffrer[i]);
+					
+				}
+				
+				for(int k = 0; k <N; k++){
+					// On xor le message avec les clés de tournées
+					tabADechiffrer[i][k] = xor(tabADechiffrer[i][k],clesTournees[i][k]);
+				}
+			}
+		}
+		// On affiche le tableau avec le message après déchiffrement
+		System.out.println("Apres Déchiffrement");
+				for (int i = 0; i < tabADechiffrer.length; i ++){
+					for(int j = 0; j < N; j++){
+						System.out.println("Tab[" + i + "]["+ j +"] : " + tabADechiffrer[i][j]);
+					}
+				}
+		
+		// On remet le tabAChiffrer sous forme de String
+		messageADechiffrer = "";
+		for(int i = 0; i < nombreSousMessageADechiffrer; i++){
+			for (int j = 0; j < N; j++){
+				messageADechiffrer += tabADechiffrer[i][j];
+			}
+		}
+		// On peut convertir en chaine de caractères le message chiffré
+		StringBuilder sbDechiffré = new StringBuilder(messageADechiffrer);
+		String messageDechiffré = BinaireTochaine(sbDechiffré);
+		System.out.println("Message avant déchiffrement : " );
+		System.out.println(messageADechiffrerChaine);
+		System.out.println("Le message déchiffré est : ");
+		System.out.println(messageDechiffré);
+		System.out.println("Message d'origine :");
+		System.out.println(messageAChiffrerChaine);
+		System.out.println(messageADechiffrer);
+		System.out.println(messageAChiffrer);
 		return null;
 	}
 	
@@ -243,7 +344,73 @@ public class ThreeFish {
 		}
 		return resultat;
 	}
-
+	
+	// Fonction qui va gérer la substitution inverse entre 2 mots de 64 bits
+	public static String[] AntiSubstitution(String[] tabMessage){
+		// Pour inverser la Substitution, il faut commencer par trouvrer m2 en xorant puis appliquant l'anti permut circulaire (voir sujet)
+		for(int i = 0; i < tabMessage.length-1; i += 2){
+			// On trouve m2
+			tabMessage[i+1] = xor(tabMessage[i], tabMessage[i+1]);
+			tabMessage[i+1] = AntiPermutationCirculaire(tabMessage[i+1]);
+			// Pour inverser une addition modulaire, on peut ajouter l'opposé.
+			// On dispose de m'1 = tab[i] et de m2 = tab[i+1]. Et m'1 = AdditionModulaire(m1,m2).
+			// On peut retrouver m1 en faisant m1 = AdditionModulaire(m'1, not(m2))
+			// On cherche l'opposé de m2 dans notre ensemble Z
+			String opposé = CalculOpposé(tabMessage[i+1]);
+			tabMessage[i] = AdditionModulaire(tabMessage[i], opposé);
+		}
+		return tabMessage;
+	}
+	
+	// Fonction qui va chercher l'opposé d'un element
+	public static String CalculOpposé(String str1){
+		String[] tab1 = str1.split("");
+		String[] tab2 = new String[tab1.length];
+		boolean retenue = false;
+		int taille = tab1.length - 1;
+		// On fait au cas pas cas pour calculé l'opposé
+		for (int i = taille; i >= 0 ; i--){
+			if(Integer.parseInt(tab1[i]) == 0 && retenue){
+				tab2[taille-i] = "1";
+				retenue = true;
+			}
+			else if (Integer.parseInt(tab1[i]) == 0 && !retenue){
+				tab2[taille-i] = "0";
+				retenue = false;
+			}
+			else if (Integer.parseInt(tab1[i]) == 1 && !retenue){
+				tab2[taille-i] = "1";
+				retenue = true;
+			}
+			else{
+				tab2[taille-i] = "0";
+				retenue = true;
+			}			
+		}
+		String str2 = "";
+		for(int i = tab2.length-1; i >=  0; i--){
+			str2 += tab2[i];
+		}
+		// On va vérifier que AdditionModulaire(tab1, tab2) = 0
+		String test = AdditionModulaire(str1, str2);
+		//System.out.println("Opposé trouvé : " + str2);
+		//System.out.println("Résultat de l'addition modulaire : " + test);
+		if (Integer.parseInt(test) == 0){
+			return str2;
+		}
+		return null;
+	}
+	
+	// Fonction qui va réaliser une permutation circulaire sur un mot, cette permutation s'opposera à la fct PermutationCirculaire
+	private static String AntiPermutationCirculaire(String str1){
+		String[] tab1 = str1.split("");
+		String result = "";
+		for(int i = 0; i < tab1.length; i++){
+			result += tab1[(i-49+tab1.length)%tab1.length];
+		}
+		return result;
+	}
+	
 	private static String AdditionModulaire(String str1, String str2) {
 		// TODO Auto-generated method stub
 		boolean retenue = false;
