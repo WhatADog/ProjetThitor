@@ -29,7 +29,6 @@ public class ThreeFish {
 	            binary.append((val & 128) == 0 ? 0 : 1);
 	            val <<= 1;
 	        }
-	        //binary.append(' ');
 	    }
 	    return binary;
 	}
@@ -68,8 +67,10 @@ public class ThreeFish {
 			//System.out.println("tab[" + (i-1)  + "] : "+ tab[i-1] );
 		}
 		
-		// On calcule kN en xorant k1, k2, ...., kN-1 et C
+		
+		// On initialise sousCles[N] avec la valeur de C
 		sousCles[N] = "0001101111010001000110111101101010101001111111000001101000100010";
+		// On calcule kN en xorant k1, k2, ...., kN-1 et C
 		for(int i = 0; i < N; i++){
 			sousCles[N] = xor(sousCles[i],sousCles[N]);
 		}
@@ -95,7 +96,7 @@ public class ThreeFish {
 	public static String[] GenerationClesTournees (String[] sousCles, String[] tweaks){
 		// sousCles est notre tableau qui contient les sous clés, sa taille est donc N + 1 actuellement
 		int N = sousCles.length-1;
-		System.out.println(N);
+		System.out.println("N vaut : " + N);
 		// On créer un tableau [20][N] car il y'a N-1 sous clés par tournée et 20 tournée, on est sur le modèle kn(i).
 		String[][] clesTournees = new String[20][N];
 		
@@ -103,18 +104,13 @@ public class ThreeFish {
 			for(int n = 0; n < N; n++){
 				
 				if (n == N-3){
-					// Dans l'attente de la compréhension de l'additionModulaire on va xorer
 					clesTournees[i][n] = AdditionModulaire(sousCles[(i+n)%(N+1)],tweaks[i%3]);
-					// clesTournees[i][n] = xor(sousCles[(i+n)%(N+1)],tweaks[i%3]);
 				}
 				else if (n == N-2){
 					clesTournees[i][n] = AdditionModulaire(sousCles[(i+n)%(N+1)],tweaks[(i+1)%3]);
-					// clesTournees[i][n] = xor(sousCles[(i+n)%(N+1)],tweaks[(i+1)%3]);
 				}
 				else if (n == N-1){
 					clesTournees[i][n] = AdditionModulaire(sousCles[(i+n)%(N+1)], ChaineToBinaire(Integer.toString(i)).toString());
-					// Impossible de xorer ici car les deux elements n'ont pas la meme taille
-					//clesTournees[i][n] = "coucou";
 				}
 				else {
 					clesTournees[i][n] = sousCles[(i+n)%(N+1)];
@@ -129,47 +125,96 @@ public class ThreeFish {
 			}
 		}
 		// Message à chiffrer
-		String messageAChiffrerChaine = "Un texte qui va faire 32 chars !";
+		String messageAChiffrerChaine = "Bonjour je m'appelle Victor mais cette information est confidentielle, je ne sais pas pourquoi j'obtiens des espaces dans mon chiffrement c'est bizarre. On va continuer à faire des tests pour voir si quelque chose ressort de la.";
+		System.out.println("Taille du message à chiffrer : " + messageAChiffrerChaine.length());
 		// On le passe en binaire
 		String messageAChiffrer = ChaineToBinaire(messageAChiffrerChaine).toString();
 		// On le découpe en blocs de 64 bits
-		String[] tabTempo = messageAChiffrer.split("");
-		String[] tabAChiffrer = new String[N];
+		String[] tabTempo = messageAChiffrer.split("");		
 		
-		for(int i = 0; i < N; i++){
-			String tempo = "";
-			for(int j = i*64; j < 64*(i+1); j++){
-				tempo += tabTempo[j];
+		// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
+		int tailleMessage = tabTempo.length;
+		System.out.println("Taille du message : "+ tailleMessage);
+		// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
+		int tailleSousMessage = N * 64;
+		System.out.println("Taille des mots : " + tailleSousMessage);
+		// On calcule le nombre de sous message que l'on va avoir
+		int nombreSousMessage = tailleMessage / tailleSousMessage;
+		if((tailleMessage%tailleSousMessage) != 0){
+			nombreSousMessage += 1;
+		}
+		System.out.println("Nombre de sous message nécessaires : " + nombreSousMessage);
+		// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
+		String[][] tabAChiffrer = new String[nombreSousMessage][N];
+		
+		// On rempli le tableau avec le message à chiffrer
+		// Pour chaque sous message, on découpe en blocs de 64bits et on fait du bourrage si necessaire
+		for (int i = 0; i < nombreSousMessage; i++){
+			for(int j = 0; j < N; j++){
+				String tempo = "";
+				for(int k = j*64; k < 64*(j+1); k++){
+					// S'il reste quelque chose dans tabTempo
+					if(k <= tabTempo.length-1){
+						tempo += tabTempo[k];
+					}
+					// Sinon on bourre avec des 0
+					else{
+						tempo += 0;
+					}
+				}
+				tabAChiffrer[i][j] = tempo;
+			}			
+		}	
+		
+		// On affiche le tableau avec le message à chiffrer
+		for (int i = 0; i < tabAChiffrer.length; i ++){
+			for(int j = 0; j < N; j++){
+				System.out.println("Tab[" + i + "]["+ j +"] : " + tabAChiffrer[i][j]);
 			}
-			tabAChiffrer[i] = tempo;
 		}
 		
-		// Boucle qui va gérer les 76 tournées
-		for(int i = 0; i < 20; i++){
-			for(int j = 0; j <N; j++){
-				// On xor le message avec les clés de tournées
-				tabAChiffrer[j] = xor(tabAChiffrer[j],clesTournees[i][j]);				
-			}
-			// On effectue 4 mix + Permute
-			for(int k = 0; k < 4; k++){
-				Substitution(tabAChiffrer);
-				for(int l = 0; l < tabAChiffrer.length; l++){
-					Permutation(tabAChiffrer[l]);
+		// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
+		// Pour chaque mot on va appliquer le chiffrement : ECB
+		for (int i = 0; i < nombreSousMessage; i++){
+			for(int j = 0; j < 20; j++){
+				for(int k = 0; k <N; k++){
+					// On xor le message avec les clés de tournées
+					tabAChiffrer[i][k] = xor(tabAChiffrer[i][k],clesTournees[i][k]);
+				}
+				// On effectue 4 mix + Permute
+				for(int l = 0; l < 4; l++){
+					Substitution(tabAChiffrer[i]);
+					for(int m = 0; m < N; m++){
+						Permutation(tabAChiffrer[i][m]);
+					}
 				}
 			}
 		}
+		// On affiche le tableau avec le message à chiffrer après chiffrement
+		System.out.println("Apres chiffrement");
+				for (int i = 0; i < tabAChiffrer.length; i ++){
+					for(int j = 0; j < N; j++){
+						System.out.println("Tab[" + i + "]["+ j +"] : " + tabAChiffrer[i][j]);
+					}
+				}
+		
 		// On remet le tabAChiffrer sous forme de String
 		messageAChiffrer = "";
-		for (int i = 0; i < tabAChiffrer.length; i++){
-			messageAChiffrer += tabAChiffrer[i];
+		for(int i = 0; i < nombreSousMessage; i++){
+			for (int j = 0; j < N; j++){
+				messageAChiffrer += tabAChiffrer[i][j];
+			}
 		}
+		
 		// On peut convertir en chaine de caractères le message chiffré
 		StringBuilder sbChiffré = new StringBuilder(messageAChiffrer);
 		String messageChiffré = BinaireTochaine(sbChiffré);
 		System.out.println("Message avant chiffrement : " + messageAChiffrerChaine);
-		System.out.println("Le message chiffré est : " + messageChiffré);
+		System.out.println("Le message chiffré est : ");
+		System.out.println(messageChiffré);
 		return null;
 	}
+	
 	// Fonction qui va gérer la substitution entre 2 mots de 64 bits
 	public static String[] Substitution(String[] tabMessage){
 		for(int i = 0; i < tabMessage.length-1; i += 2){
@@ -309,9 +354,10 @@ public class ThreeFish {
 
 	public static void main(String[] args) {
 		// On choisi ici entre 256, 512 ou 1024 pour la génération de la clé
-		String cle = GenerationCle(256);
+		String cle = GenerationCle(1024);
 		// Le nombre de découpage qu'on va faire sur la clé
 		int N = 0;
+		// En fonction de la taille de la clé on en déduit le nombre de découpage de la clé
 		switch(cle.length()){
 		case 32: N=4;
 		break;
