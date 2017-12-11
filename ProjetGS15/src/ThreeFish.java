@@ -1,5 +1,75 @@
+import java.util.Scanner;
+
+//Packages à importer afin d'utiliser les objets
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class ThreeFish {
+	
+	public static String Lecture() {
+	      // Nous déclarons nos objets en dehors du bloc try/catch
+	      FileInputStream fis = null;
+	      String result = "";
+
+	      try {
+	         // On instancie nos objets :
+	         // fis va lire le fichier
+	         // fos va écrire dans le nouveau !
+	         fis = new FileInputStream(new File("test.txt"));
+
+	         // On crée un tableau de byte pour indiquer le nombre de bytes lus à
+	         // chaque tour de boucle
+	         byte[] buf = new byte[8];
+
+	         // On crée une variable de type int pour y affecter le résultat de
+	         // la lecture
+	         // Vaut -1 quand c'est fini
+	         int n = 0;
+
+	         // Tant que l'affectation dans la variable est possible, on boucle
+	         // Lorsque la lecture du fichier est terminée l'affectation n'est
+	         // plus possible !
+	         // On sort donc de la boucle
+	         while ((n = fis.read(buf)) >= 0) {          
+	            // On affiche ce qu'a lu notre boucle au format byte et au
+	            // format char
+	            
+	            for (byte bit : buf) {
+	               result += (char)bit;
+	            }
+	            System.out.println("");
+	            //Nous réinitialisons le buffer à vide
+	            //au cas où les derniers byte lus ne soient pas un multiple de 8
+	            //Ceci permet d'avoir un buffer vierge à chaque lecture et ne pas avoir de doublon en fin de fichier
+	            buf = new byte[8];
+
+	         }
+	         
+
+	      } catch (FileNotFoundException e) {
+	         // Cette exception est levée si l'objet FileInputStream ne trouve
+	         // aucun fichier
+	         e.printStackTrace();
+	      } catch (IOException e) {
+	         // Celle-ci se produit lors d'une erreur d'écriture ou de lecture
+	         e.printStackTrace();
+	      } finally {
+	         // On ferme nos flux de données dans un bloc finally pour s'assurer
+	         // que ces instructions seront exécutées dans tous les cas même si
+	         // une exception est levée !
+	         try {
+	            if (fis != null)
+	               fis.close();
+	         } catch (IOException e) {
+	            e.printStackTrace();
+	         }
+	      }
+		return result;
+		
+	   }
 	
 	// Fonction qui va generer la clé
 	public static String GenerationCle(int size){
@@ -79,14 +149,14 @@ public class ThreeFish {
 		tweaks[2] = xor(tweaks[0], tweaks[1]);
 		
 		// Affichage des sous clés et des tweaks
-		System.out.println("Les sous clés :");
+		/*System.out.println("Les sous clés :");
 		for (int i = 0; i < sousCles.length; i++){
 			System.out.println("tab[" + (i)  + "] : "+ sousCles[i] );
 		}
 		System.out.println("Les 3 tweaks");
 		for (int i = 0; i < tweaks.length; i++){
 			System.out.println("tweak[" + (i)  + "] : "+ tweaks[i] );
-		}
+		}*/
 		
 		GenerationClesTournees(sousCles, tweaks);
 		return sousCles;		
@@ -96,7 +166,6 @@ public class ThreeFish {
 	public static String[] GenerationClesTournees (String[] sousCles, String[] tweaks){
 		// sousCles est notre tableau qui contient les sous clés, sa taille est donc N + 1 actuellement
 		int N = sousCles.length-1;
-		System.out.println("N vaut : " + N);
 		// On créer un tableau [20][N] car il y'a N-1 sous clés par tournée et 20 tournée, on est sur le modèle kn(i).
 		String[][] clesTournees = new String[20][N];
 		
@@ -117,17 +186,17 @@ public class ThreeFish {
 				}
 			}
 		}
-		
-		for (int i = 0; i < 20; i++){
+		// Affichage des clés de tournées
+		/*for (int i = 0; i < 20; i++){
 			System.out.println("Tournée n°" + i);
 			for(int n = 0; n < N; n++){
 				System.out.println("Cle["+n+"] : " + clesTournees[i][n]);
 			}
-		}
+		}*/
 		
 		// Message à chiffrer
-		String messageAChiffrerChaine = "J'ai l'impression que le chiffrement et le déchiffrement marchent mais que la conversion de binaire à chaine a quelques problème. Je pense que tout fonctionne correctement jusqu'à maintenant, faut juste que je revois la conversion de BinaireToChaine, que j'implemente le chiffrement et déchiffrement en CBC, implémenter la lecture et l'écriture d'un fichier et enfin proposer un menu à l'utilisateur pour qu'il puisse réaliser toutes ces actions. Je penserais aussi à clean le code.";
-		System.out.println("Taille du message à chiffrer : " + messageAChiffrerChaine.length());
+		//String messageAChiffrerChaine = "J'ai l'impression que le chiffrement et le déchiffrement marchent mais que la conversion de binaire à chaine a quelques problème. Je pense que tout fonctionne correctement jusqu'à maintenant, faut juste que je revois la conversion de BinaireToChaine, que j'implemente le chiffrement et déchiffrement en CBC, implémenter la lecture et l'écriture d'un fichier et enfin proposer un menu à l'utilisateur pour qu'il puisse réaliser toutes ces actions. Je penserais aussi à clean le code.";
+		String messageAChiffrerChaine = Lecture();
 		// On le passe en binaire
 		String messageAChiffrer = ChaineToBinaire(messageAChiffrerChaine).toString();
 		// On le découpe en blocs de 64 bits
@@ -135,16 +204,13 @@ public class ThreeFish {
 		
 		// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
 		int tailleMessage = tabTempo.length;
-		System.out.println("Taille du message : "+ tailleMessage);
 		// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
 		int tailleSousMessage = N * 64;
-		System.out.println("Taille des mots : " + tailleSousMessage);
 		// On calcule le nombre de sous message que l'on va avoir
 		int nombreSousMessage = tailleMessage / tailleSousMessage;
 		if((tailleMessage%tailleSousMessage) != 0){
 			nombreSousMessage += 1;
 		}
-		System.out.println("Nombre de sous message nécessaires : " + nombreSousMessage);
 		// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
 		String[][] tabAChiffrer = new String[nombreSousMessage][N];
 		// On déclare une variable qui va compter le nombre de bits bourrés
@@ -206,10 +272,15 @@ public class ThreeFish {
 		// On remet le tabAChiffrer sous forme de String
 		messageAChiffrer = "";
 		for(int i = 0; i < nombreSousMessage; i++){
-			for (int j = 0; j < N; j++){
-				messageAChiffrer += tabAChiffrer[i][j];
-			}
+			for (int j = 0; j < N; j++){				
+					messageAChiffrer += tabAChiffrer[i][j];
+				}
 		}
+		// Test pour voir si les fonction de conversion binaire fonctionnent
+		/*System.out.println(messageAChiffrer);
+		StringBuilder s = new StringBuilder(messageAChiffrer);
+		System.out.println(BinaireTochaine(s));
+		System.out.println(ChaineToBinaire(BinaireTochaine(s)));*/
 		
 		// On peut convertir en chaine de caractères le message chiffré
 		StringBuilder sbChiffré = new StringBuilder(messageAChiffrer);
@@ -217,7 +288,7 @@ public class ThreeFish {
 		System.out.println("Message avant chiffrement : " + messageAChiffrerChaine);
 		System.out.println("Le message chiffré est : ");
 		System.out.println(messageChiffré);
-		
+	
 		
 		// Message à déchiffrer
 		String messageADechiffrerChaine = messageChiffré;
@@ -311,8 +382,6 @@ public class ThreeFish {
 		// On peut convertir en chaine de caractères le message chiffré
 		StringBuilder sbDechiffré = new StringBuilder(messageADechiffrer);
 		String messageDechiffré = BinaireTochaine(sbDechiffré);
-		System.out.println("Message avant déchiffrement : " );
-		System.out.println(messageADechiffrerChaine);
 		System.out.println("Le message déchiffré est : ");
 		System.out.println(messageDechiffré);
 		System.out.println("Message d'origine :");
@@ -524,8 +593,11 @@ public class ThreeFish {
 	}
 
 	public static void main(String[] args) {
+		System.out.println("Bonjour et bienvenue dans le chiffrement symétrique ThreeFish.\nVous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
+		Scanner scan = new Scanner( System.in );
+		int user_input = scan.nextInt();
 		// On choisi ici entre 256, 512 ou 1024 pour la génération de la clé
-		String cle = GenerationCle(512);
+		String cle = GenerationCle(user_input);
 		// Le nombre de découpage qu'on va faire sur la clé
 		int N = 0;
 		// En fonction de la taille de la clé on en déduit le nombre de découpage de la clé
@@ -543,6 +615,8 @@ public class ThreeFish {
 		String cleBinary = ChaineToBinaire(cle).toString();
 		// On génère toutes les clés
 		GenerationSousCles(cleBinary,N);
+		// On ferme le scanner
+		scan.close();
 	}
 
 }
