@@ -1,36 +1,38 @@
 import java.util.Scanner;
 
-//Packages à importer afin d'utiliser les objets
+//Packages Ã  importer afin d'utiliser les objets
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 public class ThreeFish {
 	
-	public static String Lecture() {
-	      // Nous déclarons nos objets en dehors du bloc try/catch
+	/*public static String Lecture(String cible) {
+	      // Nous dÃ©clarons nos objets en dehors du bloc try/catch
 	      FileInputStream fis = null;
 	      String result = "";
 
 	      try {
 	         // On instancie nos objets :
 	         // fis va lire le fichier
-	         // fos va écrire dans le nouveau !
-	         fis = new FileInputStream(new File("test.txt"));
+	         // fos va Ã©crire dans le nouveau !
+	         fis = new FileInputStream(new File(cible));
 
-	         // On crée un tableau de byte pour indiquer le nombre de bytes lus à
+	         // On crÃ©e un tableau de byte pour indiquer le nombre de bytes lus Ã 
 	         // chaque tour de boucle
 	         byte[] buf = new byte[8];
 
-	         // On crée une variable de type int pour y affecter le résultat de
+	         // On crÃ©e une variable de type int pour y affecter le rÃ©sultat de
 	         // la lecture
 	         // Vaut -1 quand c'est fini
 	         int n = 0;
 
 	         // Tant que l'affectation dans la variable est possible, on boucle
-	         // Lorsque la lecture du fichier est terminée l'affectation n'est
+	         // Lorsque la lecture du fichier est terminÃ©e l'affectation n'est
 	         // plus possible !
 	         // On sort donc de la boucle
 	         while ((n = fis.read(buf)) >= 0) {          
@@ -40,26 +42,25 @@ public class ThreeFish {
 	            for (byte bit : buf) {
 	               result += (char)bit;
 	            }
-	            System.out.println("");
-	            //Nous réinitialisons le buffer à vide
-	            //au cas où les derniers byte lus ne soient pas un multiple de 8
-	            //Ceci permet d'avoir un buffer vierge à chaque lecture et ne pas avoir de doublon en fin de fichier
+	            //Nous rÃ©initialisons le buffer Ã  vide
+	            //au cas oÃ¹ les derniers byte lus ne soient pas un multiple de 8
+	            //Ceci permet d'avoir un buffer vierge Ã  chaque lecture et ne pas avoir de doublon en fin de fichier
 	            buf = new byte[8];
 
 	         }
 	         
 
 	      } catch (FileNotFoundException e) {
-	         // Cette exception est levée si l'objet FileInputStream ne trouve
+	         // Cette exception est levÃ©e si l'objet FileInputStream ne trouve
 	         // aucun fichier
 	         e.printStackTrace();
 	      } catch (IOException e) {
-	         // Celle-ci se produit lors d'une erreur d'écriture ou de lecture
+	         // Celle-ci se produit lors d'une erreur d'Ã©criture ou de lecture
 	         e.printStackTrace();
 	      } finally {
-	         // On ferme nos flux de données dans un bloc finally pour s'assurer
-	         // que ces instructions seront exécutées dans tous les cas même si
-	         // une exception est levée !
+	         // On ferme nos flux de donnÃ©es dans un bloc finally pour s'assurer
+	         // que ces instructions seront exÃ©cutÃ©es dans tous les cas mÃªme si
+	         // une exception est levÃ©e !
 	         try {
 	            if (fis != null)
 	               fis.close();
@@ -69,9 +70,31 @@ public class ThreeFish {
 	      }
 		return result;
 		
-	   }
+	   }*/
 	
-	// Fonction qui va generer la clé
+	// Fonction qui va permettre d'Ã©crire dans un fichier
+	/*public static void Ecriture(String texte, String cible) {	      
+		 FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(new File(cible));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	         byte[] texteAEcrire = texte.getBytes();
+	         try {
+				fos.write(texteAEcrire);
+				fos.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        
+	         System.out.println("Ecriture terminÃ©e");
+	         
+	   }*/
+	
+	// Fonction qui va generer la clÃ©
 	public static String GenerationCle(int size){
 		if (size == 256){
 			return "Un texte qui va faire 32 chars !";
@@ -80,10 +103,10 @@ public class ThreeFish {
 			return "Cette fois on va essayer d'avoir 64chars pour atteindre 512 bits";
 		}
 		else if(size == 1024){
-			return "Aie aie cette fois il faut arriver à atteindre 128 chars pour obtenir une clé de 1024 bits, c'est vraiment difficile par moment.";
+			return "Aie aie cette fois il faut arriver Ã  atteindre 128 chars pour obtenir une clÃ© de 1024 bits, c'est vraiment difficile par moment.";
 		}
 		else {
-			System.out.println("La taille de la clé demandée est invalide");
+			System.out.println("La taille de la clÃ© demandÃ©e est invalide");
 		}
 		return null;
 		
@@ -116,7 +139,68 @@ public class ThreeFish {
         return res;
     }
 	
-	// Fonction qui va générer les sous clés en séparant la clé principale en N morceaux et les tweaks
+	// Fonction qui va gÃ©rer le binaire to chaine
+	public static String BinaryToString(String str1){
+		String resultat = "";
+		System.out.println("En entrÃ©e on a : " + str1);
+		String[] tab1 = new String[str1.length()/8];
+		for(int i = 0; i < tab1.length; i++){			
+			tab1[i] = str1.substring(i*8, (i+1)*8);
+			int charCode = Integer.parseInt(tab1[i],2);
+			String str = new Character((char)charCode).toString();
+			resultat += str;
+			System.out.println(tab1[i] + "(" + charCode + ")" + "[" + Character.toString((char)charCode) + "]");
+		}
+		System.out.println("RÃ©sultat : " + resultat);
+		StringToBinary(resultat);
+		return resultat;
+	}
+	
+	// Fonction qui va gÃ©rer le chaine to binaire
+	public static String StringToBinary(String str1){
+		String resultat = "";
+		//byte[] b = str1.getBytes(StandardCharsets.US_ASCII);
+		char[] tab1 = new char[str1.length()];
+		for (int i = 0; i < str1.length(); i++){
+			tab1[i] = str1.charAt(i);
+			switch(Integer.toBinaryString((int)tab1[i]).length()){
+			case 7:
+				resultat += "0";
+				break;
+			case 6:
+				resultat += "00";
+				break;
+			case 5:
+				resultat += "000";
+				break;
+			case 4:
+				resultat += "0000";
+				break;
+			case 3:
+				resultat += "00000";
+				break;
+			case 2:
+				resultat += "000000";
+				break;
+			case 1:
+				resultat += "0000000";
+				break;
+				default:
+					break;
+			}
+			resultat += Integer.toBinaryString((int)tab1[i]);
+			System.out.println(Integer.toBinaryString((int)tab1[i]) + "(" + (int)tab1[i] + ")" + "[" + tab1[i]+ "]");
+		}
+ 		/*for (int i = 0; i < b.length; i++){
+			System.out.println("Char : " + (char)b[i]);
+			resultat += Integer.toBinaryString(b[i]);
+			System.out.println(Integer.toBinaryString(b[i]) + "(" + b[i] + ")" + "[" + str1.substring(i, i+1)+ "]");
+		}*/
+		System.out.println("A la fin on obtient : " +resultat);
+		return resultat;
+	}
+	
+	// Fonction qui va gÃ©nÃ©rer les sous clÃ©s en sÃ©parant la clÃ© principale en N morceaux et les tweaks
 	public static String[] GenerationSousCles(String chaine, int N){
 		String[] cle = chaine.split("");
 		String[] sousCles = new String[N+1];
@@ -127,7 +211,7 @@ public class ThreeFish {
 				tampon += cle[j];
 			}
 			sousCles[i-1] = tampon;
-			// On choisit arbitrairement les deux dernier mots de 64 bits comme étant les tweaks
+			// On choisit arbitrairement les deux dernier mots de 64 bits comme Ã©tant les tweaks
 			if(i == N-1){
 				tweaks[0] = tampon;
 			}
@@ -148,8 +232,8 @@ public class ThreeFish {
 		// On calcule t2 en xorant t0 et t1
 		tweaks[2] = xor(tweaks[0], tweaks[1]);
 		
-		// Affichage des sous clés et des tweaks
-		/*System.out.println("Les sous clés :");
+		// Affichage des sous clÃ©s et des tweaks
+		/*System.out.println("Les sous clÃ©s :");
 		for (int i = 0; i < sousCles.length; i++){
 			System.out.println("tab[" + (i)  + "] : "+ sousCles[i] );
 		}
@@ -162,11 +246,11 @@ public class ThreeFish {
 		return sousCles;		
 	}
 	
-	// Fonction qui va générer toutes les clés de tournée et réaliser le chiffrement / déchiffrement
+	// Fonction qui va gÃ©nÃ©rer toutes les clÃ©s de tournÃ©e et rÃ©aliser le chiffrement / dÃ©chiffrement
 	public static String[] GenerationClesTournees (String[] sousCles, String[] tweaks){
-		// sousCles est notre tableau qui contient les sous clés, sa taille est donc N + 1 actuellement
+		// sousCles est notre tableau qui contient les sous clÃ©s, sa taille est donc N + 1 actuellement
 		int N = sousCles.length-1;
-		// On créer un tableau [20][N] car il y'a N-1 sous clés par tournée et 20 tournée, on est sur le modèle kn(i).
+		// On crÃ©er un tableau [20][N] car il y'a N-1 sous clÃ©s par tournÃ©e et 20 tournÃ©e, on est sur le modÃ¨le kn(i).
 		String[][] clesTournees = new String[20][N];
 		
 		for (int i = 0; i < 20; i++){
@@ -186,23 +270,23 @@ public class ThreeFish {
 				}
 			}
 		}
-		// Affichage des clés de tournées
+		// Affichage des clÃ©s de tournÃ©es
 		/*for (int i = 0; i < 20; i++){
-			System.out.println("Tournée n°" + i);
+			System.out.println("TournÃ©e nÂ°" + i);
 			for(int n = 0; n < N; n++){
 				System.out.println("Cle["+n+"] : " + clesTournees[i][n]);
 			}
 		}*/
 		
-		// Message à chiffrer
-		//String messageAChiffrerChaine = "J'ai l'impression que le chiffrement et le déchiffrement marchent mais que la conversion de binaire à chaine a quelques problème. Je pense que tout fonctionne correctement jusqu'à maintenant, faut juste que je revois la conversion de BinaireToChaine, que j'implemente le chiffrement et déchiffrement en CBC, implémenter la lecture et l'écriture d'un fichier et enfin proposer un menu à l'utilisateur pour qu'il puisse réaliser toutes ces actions. Je penserais aussi à clean le code.";
-		String messageAChiffrerChaine = Lecture();
+		// Message Ã  chiffrer
+		String messageAChiffrerChaine = "J'aime le chocolat, c'est vraiment delicieux, je pense que c'est quelque chose d'extraordinaire surtout a 4h du matin quand t'as enfin trouve cette putain de solution";
+		
 		// On le passe en binaire
 		String messageAChiffrer = ChaineToBinaire(messageAChiffrerChaine).toString();
-		// On le découpe en blocs de 64 bits
+		// On le dÃ©coupe en blocs de 64 bits
 		String[] tabTempo = messageAChiffrer.split("");		
 		
-		// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
+		// On calcule la taille de notre message Ã  chiffrer pour savoir comment le stocker
 		int tailleMessage = tabTempo.length;
 		// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
 		int tailleSousMessage = N * 64;
@@ -211,12 +295,12 @@ public class ThreeFish {
 		if((tailleMessage%tailleSousMessage) != 0){
 			nombreSousMessage += 1;
 		}
-		// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
+		// On crÃ©er le tableau qui va stocker le message dÃ©coupÃ© en sousMessage et blocks de 64bits
 		String[][] tabAChiffrer = new String[nombreSousMessage][N];
-		// On déclare une variable qui va compter le nombre de bits bourrés
+		// On dÃ©clare une variable qui va compter le nombre de bits bourrÃ©s
 		int bourrage = 0;
-		// On rempli le tableau avec le message à chiffrer
-		// Pour chaque sous message, on découpe en blocs de 64bits et on fait du bourrage si necessaire
+		// On rempli le tableau avec le message Ã  chiffrer
+		// Pour chaque sous message, on dÃ©coupe en blocs de 64bits et on fait du bourrage si necessaire
 		for (int i = 0; i < nombreSousMessage; i++){
 			for(int j = 0; j < N; j++){
 				String tempo = "";
@@ -227,7 +311,7 @@ public class ThreeFish {
 					}
 					// Sinon on bourre avec des 0
 					else{
-						// On incrémente le nombre de bits bourrés
+						// On incrÃ©mente le nombre de bits bourrÃ©s
 						bourrage ++;
 						tempo += 0;
 					}
@@ -236,7 +320,7 @@ public class ThreeFish {
 			}			
 		}	
 		
-		// On affiche le tableau avec le message à chiffrer
+		// On affiche le tableau avec le message Ã  chiffrer
 		/*System.out.println("Avant chiffrement");
 		for (int i = 0; i < tabAChiffrer.length; i ++){
 			for(int j = 0; j < N; j++){
@@ -244,12 +328,12 @@ public class ThreeFish {
 			}
 		}*/
 		
-		// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
+		// Boucle qui va gÃ©rer les 76 tournÃ©es avec les 20 ajouts de clÃ©s
 		// Pour chaque mot on va appliquer le chiffrement : ECB
 		for (int i = 0; i < nombreSousMessage; i++){
 			for(int j = 0; j < 20; j++){
 				for(int k = 0; k <N; k++){
-					// On xor le message avec les clés de tournées
+					// On xor le message avec les clÃ©s de tournÃ©es
 					tabAChiffrer[i][k] = xor(tabAChiffrer[i][k],clesTournees[i][k]);
 				}
 				// On effectue 4 mix + Permute
@@ -261,7 +345,7 @@ public class ThreeFish {
 				}
 			}
 		}
-		// On affiche le tableau avec le message à chiffrer après chiffrement
+		// On affiche le tableau avec le message Ã  chiffrer aprÃ¨s chiffrement
 		/*System.out.println("Apres chiffrement");
 				for (int i = 0; i < tabAChiffrer.length; i ++){
 					for(int j = 0; j < N; j++){
@@ -282,23 +366,28 @@ public class ThreeFish {
 		System.out.println(BinaireTochaine(s));
 		System.out.println(ChaineToBinaire(BinaireTochaine(s)));*/
 		
-		// On peut convertir en chaine de caractères le message chiffré
-		StringBuilder sbChiffré = new StringBuilder(messageAChiffrer);
-		String messageChiffré = BinaireTochaine(sbChiffré);
+		// On peut convertir en chaine de caractÃ¨res le message chiffrÃ©
+		BinaryToString(messageAChiffrer);
+		StringBuilder sbChiffrÃ© = new StringBuilder(messageAChiffrer);
+		
+		//String messageChiffrÃ© = BinaireTochaine(sbChiffrÃ©);
+		String messageChiffrÃ© = BinaryToString(messageAChiffrer);
 		System.out.println("Message avant chiffrement : " + messageAChiffrerChaine);
-		System.out.println("Le message chiffré est : ");
-		System.out.println(messageChiffré);
+		System.out.println("Le message chiffrÃ© est : ");
+		System.out.println(messageChiffrÃ©);
 	
 		
-		// Message à déchiffrer
-		String messageADechiffrerChaine = messageChiffré;
+		// Message Ã  dÃ©chiffrer
+		//String messageADechiffrerChaine = messageChiffrÃ©;
+		//String messageADechiffrerChaine = messageAChiffrer;
 		// On le passe en binaire (On a un pb avec la fonction BinaryToChaine du coup on passe directement par le binaire du messageAChiffrer
 		String messageADechiffrer = messageAChiffrer;
 		//String messageADechiffrer = ChaineToBinaire(messageADechiffrerChaine).toString();
-		// On le découpe en blocs de 64 bits
+		System.out.println(messageADechiffrer.length());
+		// On le dÃ©coupe en blocs de 64 bits
 		String[] tabTempo2 = messageADechiffrer.split("");		
 		
-		// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
+		// On calcule la taille de notre message Ã  chiffrer pour savoir comment le stocker
 		int tailleMessageADechiffrer = tabTempo2.length;
 		//System.out.println("Taille du message : "+ tailleMessageADechiffrer);
 		// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
@@ -309,12 +398,12 @@ public class ThreeFish {
 		if((tailleMessageADechiffrer%tailleSousMessageADechiffrer) != 0){
 			nombreSousMessageADechiffrer += 1;
 		}
-		//System.out.println("Nombre de sous message nécessaires : " + nombreSousMessageADechiffrer);
-		// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
+		//System.out.println("Nombre de sous message nÃ©cessaires : " + nombreSousMessageADechiffrer);
+		// On crÃ©er le tableau qui va stocker le message dÃ©coupÃ© en sousMessage et blocks de 64bits
 		String[][] tabADechiffrer = new String[nombreSousMessageADechiffrer][N];
 		
-		// On rempli le tableau avec le message à déchiffrer
-		// Pour chaque sous message, on découpe en blocs de 64bits et on fait du bourrage si necessaire
+		// On rempli le tableau avec le message Ã  dÃ©chiffrer
+		// Pour chaque sous message, on dÃ©coupe en blocs de 64bits et on fait du bourrage si necessaire
 		for (int i = 0; i < nombreSousMessageADechiffrer; i++){
 			for(int j = 0; j < N; j++){
 				String tempo2 = "";
@@ -333,16 +422,16 @@ public class ThreeFish {
 			}			
 		}	
 		
-		// On affiche le tableau avec le message à déchiffrer
-		/*System.out.println("Message à déchiffrer :");
+		// On affiche le tableau avec le message Ã  dÃ©chiffrer
+		/*System.out.println("Message Ã  dÃ©chiffrer :");
 		for (int i = 0; i < tabADechiffrer.length; i ++){
 			for(int j = 0; j < N; j++){
 				System.out.println("Tab[" + i + "]["+ j +"] : " + tabADechiffrer[i][j]);
 			}
 		}*/
 		
-		// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
-		// Pour chaque mot on va appliquer le déchiffrement : ECB
+		// Boucle qui va gÃ©rer les 76 tournÃ©es avec les 20 ajouts de clÃ©s
+		// Pour chaque mot on va appliquer le dÃ©chiffrement : ECB
 		for (int i = 0; i < nombreSousMessageADechiffrer; i++){
 			for(int j = 0; j < 20; j++){				
 				// On effectue 4 mix + Permute
@@ -355,13 +444,13 @@ public class ThreeFish {
 				}
 				
 				for(int k = 0; k <N; k++){
-					// On xor le message avec les clés de tournées
+					// On xor le message avec les clÃ©s de tournÃ©es
 					tabADechiffrer[i][k] = xor(tabADechiffrer[i][k],clesTournees[i][k]);
 				}
 			}
 		}
-		// On affiche le tableau avec le message après déchiffrement
-		/*System.out.println("Apres Déchiffrement");
+		// On affiche le tableau avec le message aprÃ¨s dÃ©chiffrement
+		/*System.out.println("Apres DÃ©chiffrement");
 				for (int i = 0; i < tabADechiffrer.length; i ++){
 					for(int j = 0; j < N; j++){
 						System.out.println("Tab[" + i + "]["+ j +"] : " + tabADechiffrer[i][j]);
@@ -375,21 +464,22 @@ public class ThreeFish {
 				messageADechiffrer += tabADechiffrer[i][j];
 			}
 		}
-		// System.out.println("On a bourré " + bourrage + " bits.");
+		// System.out.println("On a bourrÃ© " + bourrage + " bits.");
 		// On s'occupe d'enlever le bourrage
 		messageADechiffrer = messageADechiffrer.substring(0, messageADechiffrer.length()- bourrage);
 		
-		// On peut convertir en chaine de caractères le message chiffré
-		StringBuilder sbDechiffré = new StringBuilder(messageADechiffrer);
-		String messageDechiffré = BinaireTochaine(sbDechiffré);
-		System.out.println("Le message déchiffré est : ");
-		System.out.println(messageDechiffré);
+		// On peut convertir en chaine de caractÃ¨res le message chiffrÃ©
+		StringBuilder sbDechiffrÃ© = new StringBuilder(messageADechiffrer);
+		//String messageDechiffrÃ© = BinaireTochaine(sbDechiffrÃ©);
+		String messageDechiffrÃ© = BinaryToString(messageADechiffrer);
+		System.out.println("Le message dÃ©chiffrÃ© est : ");
+		System.out.println(messageDechiffrÃ©);
 		System.out.println("Message d'origine :");
 		System.out.println(messageAChiffrerChaine);
 		return null;
 	}
 	
-	// Fonction qui va gérer la substitution entre 2 mots de 64 bits
+	// Fonction qui va gÃ©rer la substitution entre 2 mots de 64 bits
 	public static String[] Substitution(String[] tabMessage){
 		for(int i = 0; i < tabMessage.length-1; i += 2){
 			tabMessage[i] = AdditionModulaire(tabMessage[i], tabMessage[i+1]);
@@ -398,7 +488,7 @@ public class ThreeFish {
 		return tabMessage;
 	}
 	
-	// Fonction qui va réaliser une permutation circulaire sur un mot
+	// Fonction qui va rÃ©aliser une permutation circulaire sur un mot
 	private static String PermutationCirculaire(String str1) {
 		String[] tab1 = str1.split("");
 		String result = "";
@@ -418,30 +508,30 @@ public class ThreeFish {
 		return resultat;
 	}
 	
-	// Fonction qui va gérer la substitution inverse entre 2 mots de 64 bits
+	// Fonction qui va gÃ©rer la substitution inverse entre 2 mots de 64 bits
 	public static String[] AntiSubstitution(String[] tabMessage){
 		// Pour inverser la Substitution, il faut commencer par trouvrer m2 en xorant puis appliquant l'anti permut circulaire (voir sujet)
 		for(int i = 0; i < tabMessage.length-1; i += 2){
 			// On trouve m2
 			tabMessage[i+1] = xor(tabMessage[i], tabMessage[i+1]);
 			tabMessage[i+1] = AntiPermutationCirculaire(tabMessage[i+1]);
-			// Pour inverser une addition modulaire, on peut ajouter l'opposé.
+			// Pour inverser une addition modulaire, on peut ajouter l'opposÃ©.
 			// On dispose de m'1 = tab[i] et de m2 = tab[i+1]. Et m'1 = AdditionModulaire(m1,m2).
 			// On peut retrouver m1 en faisant m1 = AdditionModulaire(m'1, not(m2))
-			// On cherche l'opposé de m2 dans notre ensemble Z
-			String opposé = CalculOpposé(tabMessage[i+1]);
-			tabMessage[i] = AdditionModulaire(tabMessage[i], opposé);
+			// On cherche l'opposÃ© de m2 dans notre ensemble Z
+			String opposÃ© = CalculOpposÃ©(tabMessage[i+1]);
+			tabMessage[i] = AdditionModulaire(tabMessage[i], opposÃ©);
 		}
 		return tabMessage;
 	}
 	
-	// Fonction qui va chercher l'opposé d'un element
-	public static String CalculOpposé(String str1){
+	// Fonction qui va chercher l'opposÃ© d'un element
+	public static String CalculOpposÃ©(String str1){
 		String[] tab1 = str1.split("");
 		String[] tab2 = new String[tab1.length];
 		boolean retenue = false;
 		int taille = tab1.length - 1;
-		// On fait au cas pas cas pour calculé l'opposé
+		// On fait au cas pas cas pour calculÃ© l'opposÃ©
 		for (int i = taille; i >= 0 ; i--){
 			if(Integer.parseInt(tab1[i]) == 0 && retenue){
 				tab2[taille-i] = "1";
@@ -464,17 +554,17 @@ public class ThreeFish {
 		for(int i = tab2.length-1; i >=  0; i--){
 			str2 += tab2[i];
 		}
-		// On va vérifier que AdditionModulaire(tab1, tab2) = 0
+		// On va vÃ©rifier que AdditionModulaire(tab1, tab2) = 0
 		String test = AdditionModulaire(str1, str2);
-		//System.out.println("Opposé trouvé : " + str2);
-		//System.out.println("Résultat de l'addition modulaire : " + test);
+		//System.out.println("OpposÃ© trouvÃ© : " + str2);
+		//System.out.println("RÃ©sultat de l'addition modulaire : " + test);
 		if (Integer.parseInt(test) == 0){
 			return str2;
 		}
 		return null;
 	}
 	
-	// Fonction qui va réaliser une permutation circulaire sur un mot, cette permutation s'opposera à la fct PermutationCirculaire
+	// Fonction qui va rÃ©aliser une permutation circulaire sur un mot, cette permutation s'opposera Ã  la fct PermutationCirculaire
 	private static String AntiPermutationCirculaire(String str1){
 		String[] tab1 = str1.split("");
 		String result = "";
@@ -498,11 +588,11 @@ public class ThreeFish {
 		String str3 = "";
 		// On boucle sur le plus grand tableau tab1
 		for (int i = 0; i < tab1.length; i++){
-			// On vérifie qu'on soit toujours dans le tableau tab2
+			// On vÃ©rifie qu'on soit toujours dans le tableau tab2
 			if(i < tab2.length){
 				// Si les deux tableaux contiennent un 1
 				if(Integer.parseInt(tab1[tab1.length-1-i]) == Integer.parseInt(tab2[tab2.length-1-i]) && Integer.parseInt(tab1[tab1.length-1-i])==1){
-					// Si y'avait déjà une retenue, la case vaudra 1
+					// Si y'avait dÃ©jÃ  une retenue, la case vaudra 1
 					if (retenue){
 						str3 +="1";
 					}
@@ -515,7 +605,7 @@ public class ThreeFish {
 				}
 				// Si les deux tableaux contiennent 0
 				else if (Integer.parseInt(tab1[tab1.length-1-i]) == Integer.parseInt(tab2[tab2.length-1-i]) && Integer.parseInt(tab1[tab1.length-1-i])==0){
-					// Si y'avait déjà une retenue, la case vaudra 1
+					// Si y'avait dÃ©jÃ  une retenue, la case vaudra 1
 					if (retenue){
 						str3 +="1";
 					}
@@ -526,9 +616,9 @@ public class ThreeFish {
 					// On retient pas
 					retenue = false;
 				}
-				// Le cas où on a un 1 et un 0
+				// Le cas oÃ¹ on a un 1 et un 0
 				else{
-					// Si y'avait déjà une retenue, la case vaudra 0 et on retiendra
+					// Si y'avait dÃ©jÃ  une retenue, la case vaudra 0 et on retiendra
 					if (retenue){
 						str3 +="0";
 						retenue = true;
@@ -540,7 +630,7 @@ public class ThreeFish {
 					}
 				}
 			}
-			// Si le tab2 est plus petit alors le résultat dependra seulement de tab1
+			// Si le tab2 est plus petit alors le rÃ©sultat dependra seulement de tab1
 			else {
 				if (retenue){
 					switch(Integer.parseInt(tab1[tab1.length-1-i])){
@@ -558,13 +648,13 @@ public class ThreeFish {
 				}				
 			}
 		}
-		// Il faut retourner le résultat obtenu
+		// Il faut retourner le rÃ©sultat obtenu
 		String [] tab3 = str3.split("");
 		String resultat = "";
 		for(int i = tab3.length-1; i >=  0; i--){
 			resultat += tab3[i];
 		}
-		//System.out.println("Str1 :" + str1 + "\nStr2 :" + str2 + "\nRésultat :" + resultat);
+		//System.out.println("Str1 :" + str1 + "\nStr2 :" + str2 + "\nRÃ©sultat :" + resultat);
 		return resultat;
 	}
 
@@ -586,21 +676,21 @@ public class ThreeFish {
 			
 		}
 		catch(ArrayIndexOutOfBoundsException exception){
-			System.out.println("Les chaines envoyées n'ont pas la meme taille, impossible de xorer");
+			System.out.println("Les chaines envoyÃ©es n'ont pas la meme taille, impossible de xorer");
 			return null;
 		}
 		
 	}
 
 	public static void main(String[] args) {
-		System.out.println("Bonjour et bienvenue dans le chiffrement symétrique ThreeFish.\nVous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
+		System.out.println("Bonjour et bienvenue dans le chiffrement symÃ©trique ThreeFish.\nVous souhaitez utiliser une clÃ© de 256, 512 ou 1024 bits ?");
 		Scanner scan = new Scanner( System.in );
 		int user_input = scan.nextInt();
-		// On choisi ici entre 256, 512 ou 1024 pour la génération de la clé
+		// On choisi ici entre 256, 512 ou 1024 pour la gÃ©nÃ©ration de la clÃ©
 		String cle = GenerationCle(user_input);
-		// Le nombre de découpage qu'on va faire sur la clé
+		// Le nombre de dÃ©coupage qu'on va faire sur la clÃ©
 		int N = 0;
-		// En fonction de la taille de la clé on en déduit le nombre de découpage de la clé
+		// En fonction de la taille de la clÃ© on en dÃ©duit le nombre de dÃ©coupage de la clÃ©
 		switch(cle.length()){
 		case 32: N=4;
 		break;
@@ -608,15 +698,16 @@ public class ThreeFish {
 		break;
 		case 128: N=16;
 		break;
-		default: System.out.println("La taille de la clé n'est pas correcte");
+		default: System.out.println("La taille de la clÃ© n'est pas correcte");
 		break;
 		}
-		// On rend la clé binaire
+		// On rend la clÃ© binaire
 		String cleBinary = ChaineToBinaire(cle).toString();
-		// On génère toutes les clés
+		// On gÃ©nÃ¨re toutes les clÃ©s
 		GenerationSousCles(cleBinary,N);
 		// On ferme le scanner
 		scan.close();
+		
 	}
 
 }
