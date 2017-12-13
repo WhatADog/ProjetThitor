@@ -112,47 +112,23 @@ public class ThreeFish {
 		
 	}
 	
-	// Fonction qui transforme un string en binaire
-	static StringBuilder ChaineToBinaire(String chaine){
-	    byte[] bytes = chaine.getBytes();
-	    StringBuilder binary = new StringBuilder();
-	    for (byte b : bytes) {
-	        int val = b;
-	        for (int i = 0; i < 8; i++) {
-	            binary.append((val & 128) == 0 ? 0 : 1);
-	            val <<= 1;
-	        }
-	    }
-	    return binary;
-	}
-	
-	// Fonction qui transforme du binaire en chaine
-	static String BinaireTochaine(StringBuilder a2){	     
-	    String res="";
-        for(int i=1;i<a2.length();i++){
-            if(i%8==0){
-                char a=(char)Integer.parseInt(a2.substring(i-8,i),2);
-                res=res+a;
-            }  
-        }
-        res=res+(char)Integer.parseInt(a2.substring(a2.length()-8,a2.length()),2);
-        return res;
-    }
-	
 	// Fonction qui va gérer le binaire to chaine
 	public static String BinaryToString(String str1){
 		String resultat = "";
-		System.out.println("En entrée on a : " + str1);
+		/* 
+		 * System.out.println("En entrée on a : " + str1); 
+		 * */
+		
 		String[] tab1 = new String[str1.length()/8];
 		for(int i = 0; i < tab1.length; i++){			
 			tab1[i] = str1.substring(i*8, (i+1)*8);
 			int charCode = Integer.parseInt(tab1[i],2);
 			String str = new Character((char)charCode).toString();
 			resultat += str;
+			/*
 			System.out.println(tab1[i] + "(" + charCode + ")" + "[" + Character.toString((char)charCode) + "]");
+			*/
 		}
-		System.out.println("Résultat : " + resultat);
-		StringToBinary(resultat);
 		return resultat;
 	}
 	
@@ -163,6 +139,7 @@ public class ThreeFish {
 		char[] tab1 = new char[str1.length()];
 		for (int i = 0; i < str1.length(); i++){
 			tab1[i] = str1.charAt(i);
+			// En fonction de la taille de la conversion binaire de l'int du char on bourre avec des 0 pour faire 8 bits
 			switch(Integer.toBinaryString((int)tab1[i]).length()){
 			case 7:
 				resultat += "0";
@@ -189,19 +166,14 @@ public class ThreeFish {
 					break;
 			}
 			resultat += Integer.toBinaryString((int)tab1[i]);
+			/*
 			System.out.println(Integer.toBinaryString((int)tab1[i]) + "(" + (int)tab1[i] + ")" + "[" + tab1[i]+ "]");
+			*/
 		}
- 		/*for (int i = 0; i < b.length; i++){
-			System.out.println("Char : " + (char)b[i]);
-			resultat += Integer.toBinaryString(b[i]);
-			System.out.println(Integer.toBinaryString(b[i]) + "(" + b[i] + ")" + "[" + str1.substring(i, i+1)+ "]");
-		}*/
-		System.out.println("A la fin on obtient : " +resultat);
 		return resultat;
 	}
-	
-	// Fonction qui va générer les sous clés en séparant la clé principale en N morceaux et les tweaks
-	public static String[] GenerationSousCles(String chaine, int N){
+	// Fonction qui va générer les tweaks
+	private static String[] GenerationTweaks(String chaine, int N) {
 		String[] cle = chaine.split("");
 		String[] sousCles = new String[N+1];
 		String[] tweaks = new String[3];
@@ -218,7 +190,21 @@ public class ThreeFish {
 			else if (i == N){
 				tweaks[1] = tampon;
 			}
-			//System.out.println("tab[" + (i-1)  + "] : "+ tab[i-1] );
+		}		
+		// On calcule t2 en xorant t0 et t1
+		tweaks[2] = xor(tweaks[0], tweaks[1]);
+		return tweaks;
+	}
+	// Fonction qui va générer les sous clés en séparant la clé principale en N morceaux et les tweaks
+	public static String[] GenerationSousCles(String chaine, String[] tweaks, int N){
+		String[] cle = chaine.split("");
+		String[] sousCles = new String[N+1];
+		for (int i = 1; i < N +1; i++){
+			String tampon = "";
+			for (int j = 64*(i-1); j < 64*i; j++){
+				tampon += cle[j];
+			}
+			sousCles[i-1] = tampon;
 		}
 		
 		
@@ -228,10 +214,6 @@ public class ThreeFish {
 		for(int i = 0; i < N; i++){
 			sousCles[N] = xor(sousCles[i],sousCles[N]);
 		}
-		
-		// On calcule t2 en xorant t0 et t1
-		tweaks[2] = xor(tweaks[0], tweaks[1]);
-		
 		// Affichage des sous clés et des tweaks
 		/*System.out.println("Les sous clés :");
 		for (int i = 0; i < sousCles.length; i++){
@@ -241,13 +223,11 @@ public class ThreeFish {
 		for (int i = 0; i < tweaks.length; i++){
 			System.out.println("tweak[" + (i)  + "] : "+ tweaks[i] );
 		}*/
-		
-		GenerationClesTournees(sousCles, tweaks);
 		return sousCles;		
 	}
 	
 	// Fonction qui va générer toutes les clés de tournée et réaliser le chiffrement / déchiffrement
-	public static String[] GenerationClesTournees (String[] sousCles, String[] tweaks){
+	public static String[][] GenerationClesTournees (String[] sousCles, String[] tweaks){
 		// sousCles est notre tableau qui contient les sous clés, sa taille est donc N + 1 actuellement
 		int N = sousCles.length-1;
 		// On créer un tableau [20][N] car il y'a N-1 sous clés par tournée et 20 tournée, on est sur le modèle kn(i).
@@ -263,13 +243,14 @@ public class ThreeFish {
 					clesTournees[i][n] = AdditionModulaire(sousCles[(i+n)%(N+1)],tweaks[(i+1)%3]);
 				}
 				else if (n == N-1){
-					clesTournees[i][n] = AdditionModulaire(sousCles[(i+n)%(N+1)], ChaineToBinaire(Integer.toString(i)).toString());
+					clesTournees[i][n] = AdditionModulaire(sousCles[(i+n)%(N+1)], StringToBinary(Integer.toString(i)).toString());
 				}
 				else {
 					clesTournees[i][n] = sousCles[(i+n)%(N+1)];
 				}
 			}
 		}
+		return clesTournees;
 		// Affichage des clés de tournées
 		/*for (int i = 0; i < 20; i++){
 			System.out.println("Tournée n°" + i);
@@ -277,113 +258,96 @@ public class ThreeFish {
 				System.out.println("Cle["+n+"] : " + clesTournees[i][n]);
 			}
 		}*/
-		
-		// Message à chiffrer
-		String messageAChiffrerChaine = "J'aime le chocolat, c'est vraiment delicieux, je pense que c'est quelque chose d'extraordinaire surtout a 4h du matin quand t'as enfin trouve cette putain de solution";
-		
-		// On le passe en binaire
-		String messageAChiffrer = ChaineToBinaire(messageAChiffrerChaine).toString();
-		// On le découpe en blocs de 64 bits
-		String[] tabTempo = messageAChiffrer.split("");		
-		
-		// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
-		int tailleMessage = tabTempo.length;
-		// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
-		int tailleSousMessage = N * 64;
-		// On calcule le nombre de sous message que l'on va avoir
-		int nombreSousMessage = tailleMessage / tailleSousMessage;
-		if((tailleMessage%tailleSousMessage) != 0){
-			nombreSousMessage += 1;
-		}
-		// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
-		String[][] tabAChiffrer = new String[nombreSousMessage][N];
-		// On déclare une variable qui va compter le nombre de bits bourrés
-		int bourrage = 0;
-		// On rempli le tableau avec le message à chiffrer
-		// Pour chaque sous message, on découpe en blocs de 64bits et on fait du bourrage si necessaire
-		for (int i = 0; i < nombreSousMessage; i++){
-			for(int j = 0; j < N; j++){
-				String tempo = "";
-				for(int k = (j*64)+(i*64*N); k < 64*(j+1)+(i*64*N); k++){
-					// S'il reste quelque chose dans tabTempo
-					if(k <= tabTempo.length-1){
-						tempo += tabTempo[k];
-					}
-					// Sinon on bourre avec des 0
-					else{
-						// On incrémente le nombre de bits bourrés
-						bourrage ++;
-						tempo += 0;
-					}
-				}
-				tabAChiffrer[i][j] = tempo;
-			}			
-		}	
-		
-		// On affiche le tableau avec le message à chiffrer
-		/*System.out.println("Avant chiffrement");
-		for (int i = 0; i < tabAChiffrer.length; i ++){
-			for(int j = 0; j < N; j++){
-				System.out.println("Tab[" + i + "]["+ j +"] : " + tabAChiffrer[i][j]);
-			}
-		}*/
-		
-		// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
-		// Pour chaque mot on va appliquer le chiffrement : ECB
-		for (int i = 0; i < nombreSousMessage; i++){
-			for(int j = 0; j < 20; j++){
-				for(int k = 0; k <N; k++){
-					// On xor le message avec les clés de tournées
-					tabAChiffrer[i][k] = xor(tabAChiffrer[i][k],clesTournees[i][k]);
-				}
-				// On effectue 4 mix + Permute
-				for(int l = 0; l < 4; l++){
-					tabAChiffrer[i] = Substitution(tabAChiffrer[i]);
-					for(int m = 0; m < N; m++){
-						tabAChiffrer[i][m] = Permutation(tabAChiffrer[i][m]);
-					}
-				}
-			}
-		}
-		// On affiche le tableau avec le message à chiffrer après chiffrement
-		/*System.out.println("Apres chiffrement");
-				for (int i = 0; i < tabAChiffrer.length; i ++){
-					for(int j = 0; j < N; j++){
-						System.out.println("Tab[" + i + "]["+ j +"] : " + tabAChiffrer[i][j]);
-					}
-				}*/
-		
-		// On remet le tabAChiffrer sous forme de String
-		messageAChiffrer = "";
-		for(int i = 0; i < nombreSousMessage; i++){
-			for (int j = 0; j < N; j++){				
-					messageAChiffrer += tabAChiffrer[i][j];
-				}
-		}
-		// Test pour voir si les fonction de conversion binaire fonctionnent
-		/*System.out.println(messageAChiffrer);
-		StringBuilder s = new StringBuilder(messageAChiffrer);
-		System.out.println(BinaireTochaine(s));
-		System.out.println(ChaineToBinaire(BinaireTochaine(s)));*/
-		
-		// On peut convertir en chaine de caractères le message chiffré
-		BinaryToString(messageAChiffrer);
-		StringBuilder sbChiffré = new StringBuilder(messageAChiffrer);
-		
-		//String messageChiffré = BinaireTochaine(sbChiffré);
-		String messageChiffré = BinaryToString(messageAChiffrer);
-		System.out.println("Message avant chiffrement : " + messageAChiffrerChaine);
-		System.out.println("Le message chiffré est : ");
-		System.out.println(messageChiffré);
+	}
 	
+	public static String[] ChiffrementThreeFish(String fichier, int N, String[][] clesTournees){
+		// Message à chiffrer
+				String messageAChiffrerChaine = "Bonjour Michel!";
+				
+				// On le passe en binaire
+				String messageAChiffrer = StringToBinary(messageAChiffrerChaine).toString();
+				// On le découpe en blocs de 64 bits
+				String[] tabTempo = messageAChiffrer.split("");		
+				
+				// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
+				int tailleMessage = tabTempo.length;
+				// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
+				int tailleSousMessage = N * 64;
+				// On calcule le nombre de sous message que l'on va avoir
+				int nombreSousMessage = tailleMessage / tailleSousMessage;
+				if((tailleMessage%tailleSousMessage) != 0){
+					nombreSousMessage += 1;
+				}
+				// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
+				String[][] tabAChiffrer = new String[nombreSousMessage][N];
+				// On déclare une variable qui va compter le nombre de bits bourrés
+				int bourrage = 0;
+				// On rempli le tableau avec le message à chiffrer
+				// Pour chaque sous message, on découpe en blocs de 64bits et on fait du bourrage si necessaire
+				for (int i = 0; i < nombreSousMessage; i++){
+					for(int j = 0; j < N; j++){
+						String tempo = "";
+						for(int k = (j*64)+(i*64*N); k < 64*(j+1)+(i*64*N); k++){
+							// S'il reste quelque chose dans tabTempo
+							if(k <= tabTempo.length-1){
+								tempo += tabTempo[k];
+							}
+							// Sinon on bourre avec des 0
+							else{
+								// On incrémente le nombre de bits bourrés
+								bourrage ++;
+								tempo += 0;
+							}
+						}
+						tabAChiffrer[i][j] = tempo;
+					}			
+				}
+				
+				// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
+				// Pour chaque mot on va appliquer le chiffrement : ECB
+				for (int i = 0; i < nombreSousMessage; i++){
+					for(int j = 0; j < 20; j++){
+						for(int k = 0; k <N; k++){
+							// On xor le message avec les clés de tournées
+							tabAChiffrer[i][k] = xor(tabAChiffrer[i][k],clesTournees[i][k]);
+						}
+						// On effectue 4 mix + Permute
+						for(int l = 0; l < 4; l++){
+							tabAChiffrer[i] = Substitution(tabAChiffrer[i]);
+							for(int m = 0; m < N; m++){
+								tabAChiffrer[i][m] = Permutation(tabAChiffrer[i][m]);
+							}
+						}
+					}
+				}
+				
+				// On remet le tabAChiffrer sous forme de String
+				messageAChiffrer = "";
+				for(int i = 0; i < nombreSousMessage; i++){
+					for (int j = 0; j < N; j++){				
+							messageAChiffrer += tabAChiffrer[i][j];
+						}
+				}
+				
+				//String messageChiffré = BinaireTochaine(sbChiffré);
+				String messageChiffré = BinaryToString(messageAChiffrer);
+				System.out.println("Message avant chiffrement : \n" + messageAChiffrerChaine);
+				System.out.println("\nLe message chiffré est : ");
+				System.out.println(messageChiffré);
+				// On créer un tableau de string qui va contenir notre message et le bourrage
+				String [] retour = new String[2];
+				retour[0] = messageChiffré;
+				retour[1] = Integer.toString(bourrage);
+				return retour;
+	}
 		
+	
+	public static String DechiffrementThreeFish(String[] messageChiffré, int N, String[][] clesTournees){
 		// Message à déchiffrer
-		//String messageADechiffrerChaine = messageChiffré;
-		//String messageADechiffrerChaine = messageAChiffrer;
-		// On le passe en binaire (On a un pb avec la fonction BinaryToChaine du coup on passe directement par le binaire du messageAChiffrer
-		String messageADechiffrer = messageAChiffrer;
-		//String messageADechiffrer = ChaineToBinaire(messageADechiffrerChaine).toString();
-		System.out.println(messageADechiffrer.length());
+		String messageADechiffrerChaine = messageChiffré[0];
+		int bourrage = Integer.parseInt(messageChiffré[1]);
+		// On le passe en binaire 
+		String messageADechiffrer = StringToBinary(messageADechiffrerChaine).toString();
 		// On le découpe en blocs de 64 bits
 		String[] tabTempo2 = messageADechiffrer.split("");		
 		
@@ -398,7 +362,7 @@ public class ThreeFish {
 		if((tailleMessageADechiffrer%tailleSousMessageADechiffrer) != 0){
 			nombreSousMessageADechiffrer += 1;
 		}
-		//System.out.println("Nombre de sous message nécessaires : " + nombreSousMessageADechiffrer);
+		
 		// On créer le tableau qui va stocker le message découpé en sousMessage et blocks de 64bits
 		String[][] tabADechiffrer = new String[nombreSousMessageADechiffrer][N];
 		
@@ -414,21 +378,12 @@ public class ThreeFish {
 					}
 					// Sinon on bourre avec des 0
 					else{
-						// System.out.println("On rentre dans le bourrage");
 						tempo2 += "0";
 					}
 				}
 				tabADechiffrer[i][j] = tempo2;
 			}			
 		}	
-		
-		// On affiche le tableau avec le message à déchiffrer
-		/*System.out.println("Message à déchiffrer :");
-		for (int i = 0; i < tabADechiffrer.length; i ++){
-			for(int j = 0; j < N; j++){
-				System.out.println("Tab[" + i + "]["+ j +"] : " + tabADechiffrer[i][j]);
-			}
-		}*/
 		
 		// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
 		// Pour chaque mot on va appliquer le déchiffrement : ECB
@@ -449,13 +404,6 @@ public class ThreeFish {
 				}
 			}
 		}
-		// On affiche le tableau avec le message après déchiffrement
-		/*System.out.println("Apres Déchiffrement");
-				for (int i = 0; i < tabADechiffrer.length; i ++){
-					for(int j = 0; j < N; j++){
-						System.out.println("Tab[" + i + "]["+ j +"] : " + tabADechiffrer[i][j]);
-					}
-				}*/
 		
 		// On remet le tabAChiffrer sous forme de String
 		messageADechiffrer = "";
@@ -469,13 +417,9 @@ public class ThreeFish {
 		messageADechiffrer = messageADechiffrer.substring(0, messageADechiffrer.length()- bourrage);
 		
 		// On peut convertir en chaine de caractères le message chiffré
-		StringBuilder sbDechiffré = new StringBuilder(messageADechiffrer);
-		//String messageDechiffré = BinaireTochaine(sbDechiffré);
 		String messageDechiffré = BinaryToString(messageADechiffrer);
-		System.out.println("Le message déchiffré est : ");
+		System.out.println("\nLe message déchiffré est : ");
 		System.out.println(messageDechiffré);
-		System.out.println("Message d'origine :");
-		System.out.println(messageAChiffrerChaine);
 		return null;
 	}
 	
@@ -702,12 +646,25 @@ public class ThreeFish {
 		break;
 		}
 		// On rend la clé binaire
-		String cleBinary = ChaineToBinaire(cle).toString();
+		String cleBinary = StringToBinary(cle).toString();
+		// On génère les tweaks
+		String [] tweaks = new String[3];
+		tweaks = GenerationTweaks(cleBinary, N);
 		// On génère toutes les clés
-		GenerationSousCles(cleBinary,N);
+		String[] sousCles = GenerationSousCles(cleBinary, tweaks ,N);
+		// On génère les clés de tournées
+		String[][] clesTournees = new String[20][N];
+		clesTournees = GenerationClesTournees(sousCles, tweaks);
+		// On chiffre
+		String[] chiffréEtBourrage = ChiffrementThreeFish("test.txt", N, clesTournees);
+		
+		// On dechiffre
+		DechiffrementThreeFish(chiffréEtBourrage, N, clesTournees);
 		// On ferme le scanner
 		scan.close();
 		
 	}
+
+	
 
 }
