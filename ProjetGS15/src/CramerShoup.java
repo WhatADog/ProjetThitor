@@ -34,8 +34,8 @@ public class CramerShoup {
 	public static void main(String[] args) {
 		Random rnd = new Random();
 
-		BigInteger test = new BigInteger(256, 100, rnd);
-		BigInteger deriv = new BigInteger(test.toByteArray());
+		BigInteger p = new BigInteger(256, 100, rnd);
+		BigInteger deriv = new BigInteger(p.toByteArray());
 		deriv = deriv.subtract(BigInteger.valueOf(1)).divide(BigInteger.valueOf(2));
 		boolean friable = true;
 
@@ -44,8 +44,8 @@ public class CramerShoup {
 		}
 		else{
 			while(friable){
-				test = new BigInteger(256, 100, rnd);
-				deriv = new BigInteger(test.toByteArray());
+				p = new BigInteger(256, 100, rnd);
+				deriv = new BigInteger(p.toByteArray());
 				deriv = deriv.subtract(BigInteger.valueOf(1)).divide(BigInteger.valueOf(2));
 				if(deriv.isProbablePrime(100)){
 					friable = false;
@@ -53,11 +53,28 @@ public class CramerShoup {
 			}
 		}
 
-		System.out.println(test.toString());
-		System.out.println(deriv.toString());
+		System.out.println("p = "+p.toString());
 
-		ArrayList<Long> premElemGenerateur = genElementGenerateurSurNonFriable(test);
-		System.out.println(premElemGenerateur.get(premElemGenerateur.size()-1)+" ; "+premElemGenerateur.get(premElemGenerateur.size()-2));
+		ArrayList<Long> premElemGenerateur = genElementGenerateurSurNonFriable(p);
+
+		BigInteger a1 = new BigInteger(premElemGenerateur.get(premElemGenerateur.size()-1)+"");
+		BigInteger a2 = new BigInteger(premElemGenerateur.get(premElemGenerateur.size()-2)+"");
+
+		BigInteger x1 = new BigInteger(128, rnd);
+		BigInteger x2 = new BigInteger(128, rnd);
+		BigInteger y1 = new BigInteger(128, rnd);
+		BigInteger y2 = new BigInteger(128, rnd);
+		BigInteger w = new BigInteger(128, rnd);
+
+		BigInteger majX = a1.modPow(x1, p).multiply(a2.modPow(x2, p)).mod(p);
+		BigInteger majY = a1.modPow(y1, p).multiply(a2.modPow(y2, p)).mod(p);
+		BigInteger majW = a1.modPow(w, p);
+
+		System.out.println("a1 = "+a1.toString());
+		System.out.println("a2 = "+a2.toString());
+		System.out.println("X = "+majX.toString());
+		System.out.println("Y = "+majY.toString());
+		System.out.println("W = "+majW.toString());
 	}
 
 }
