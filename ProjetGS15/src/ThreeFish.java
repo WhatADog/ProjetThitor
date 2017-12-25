@@ -1,98 +1,9 @@
+
 import java.util.Scanner;
+import GUnGrosPaquet.Utilitaires;
 
-//Packages à importer afin d'utiliser les objets
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-
+// Classe qui va permettre de réaliser un chiffrement / déchiffrement avec ThreeFish, algorithme de chiffrement symétrique.
 public class ThreeFish {
-	
-	/*public static String Lecture(String cible) {
-	      // Nous déclarons nos objets en dehors du bloc try/catch
-	      FileInputStream fis = null;
-	      String result = "";
-
-	      try {
-	         // On instancie nos objets :
-	         // fis va lire le fichier
-	         // fos va écrire dans le nouveau !
-	         fis = new FileInputStream(new File(cible));
-
-	         // On crée un tableau de byte pour indiquer le nombre de bytes lus à
-	         // chaque tour de boucle
-	         byte[] buf = new byte[8];
-
-	         // On crée une variable de type int pour y affecter le résultat de
-	         // la lecture
-	         // Vaut -1 quand c'est fini
-	         int n = 0;
-
-	         // Tant que l'affectation dans la variable est possible, on boucle
-	         // Lorsque la lecture du fichier est terminée l'affectation n'est
-	         // plus possible !
-	         // On sort donc de la boucle
-	         while ((n = fis.read(buf)) >= 0) {          
-	            // On affiche ce qu'a lu notre boucle au format byte et au
-	            // format char
-	            
-	            for (byte bit : buf) {
-	               result += (char)bit;
-	            }
-	            //Nous réinitialisons le buffer à vide
-	            //au cas où les derniers byte lus ne soient pas un multiple de 8
-	            //Ceci permet d'avoir un buffer vierge à chaque lecture et ne pas avoir de doublon en fin de fichier
-	            buf = new byte[8];
-
-	         }
-	         
-
-	      } catch (FileNotFoundException e) {
-	         // Cette exception est levée si l'objet FileInputStream ne trouve
-	         // aucun fichier
-	         e.printStackTrace();
-	      } catch (IOException e) {
-	         // Celle-ci se produit lors d'une erreur d'écriture ou de lecture
-	         e.printStackTrace();
-	      } finally {
-	         // On ferme nos flux de données dans un bloc finally pour s'assurer
-	         // que ces instructions seront exécutées dans tous les cas même si
-	         // une exception est levée !
-	         try {
-	            if (fis != null)
-	               fis.close();
-	         } catch (IOException e) {
-	            e.printStackTrace();
-	         }
-	      }
-		return result;
-		
-	   }*/
-	
-	// Fonction qui va permettre d'écrire dans un fichier
-	/*public static void Ecriture(String texte, String cible) {	      
-		 FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(new File(cible));
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	         byte[] texteAEcrire = texte.getBytes();
-	         try {
-				fos.write(texteAEcrire);
-				fos.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	        
-	         System.out.println("Ecriture terminée");
-	         
-	   }*/
 	
 	// Fonction qui va generer la clé
 	public static String GenerationCle(int size){
@@ -172,6 +83,8 @@ public class ThreeFish {
 		}
 		return resultat;
 	}
+	
+	
 	// Fonction qui va générer les tweaks
 	private static String[] GenerationTweaks(String chaine, int N) {
 		String[] cle = chaine.split("");
@@ -226,7 +139,7 @@ public class ThreeFish {
 		return sousCles;		
 	}
 	
-	// Fonction qui va générer toutes les clés de tournée et réaliser le chiffrement / déchiffrement
+	// Fonction qui va générer toutes les clés de tournée
 	public static String[][] GenerationClesTournees (String[] sousCles, String[] tweaks){
 		// sousCles est notre tableau qui contient les sous clés, sa taille est donc N + 1 actuellement
 		int N = sousCles.length-1;
@@ -260,9 +173,9 @@ public class ThreeFish {
 		}*/
 	}
 	
-	public static String[] ChiffrementThreeFish(String fichier, int N, String[][] clesTournees){
-		// Message à chiffrer
-				String messageAChiffrerChaine = "Bonjour Michel!";
+	public static void ChiffrementThreeFish(int N, String[][] clesTournees){
+				// Message à chiffrer
+				String messageAChiffrerChaine = Utilitaires.Lecture();
 				
 				// On le passe en binaire
 				String messageAChiffrer = StringToBinary(messageAChiffrerChaine).toString();
@@ -329,25 +242,35 @@ public class ThreeFish {
 						}
 				}
 				
-				//String messageChiffré = BinaireTochaine(sbChiffré);
-				String messageChiffré = BinaryToString(messageAChiffrer);
+				// On ajoute la taille du bourrage sur 10 bits, maximum de bits bourrés qu'on peut avoir => 1023 char
+				String bourrageString = Integer.toBinaryString(bourrage);
+				// On fait en sorte que la bourrage soit toujours sur 10 bits;
+				while(bourrageString.length() < 10){
+					bourrageString = "0" + bourrageString;
+				}
+				// On ajoute le bourrage
+				messageAChiffrer += bourrageString;
+
 				System.out.println("Message avant chiffrement : \n" + messageAChiffrerChaine);
-				System.out.println("\nLe message chiffré est : ");
-				System.out.println(messageChiffré);
-				// On créer un tableau de string qui va contenir notre message et le bourrage
-				String [] retour = new String[2];
-				retour[0] = messageChiffré;
-				retour[1] = Integer.toString(bourrage);
-				return retour;
+				System.out.println("\nLe message chiffré est : " + messageAChiffrer);
+				Utilitaires.Ecriture(messageAChiffrer, "Chiffré.txt");
 	}
 		
 	
-	public static String DechiffrementThreeFish(String[] messageChiffré, int N, String[][] clesTournees){
-		// Message à déchiffrer
-		String messageADechiffrerChaine = messageChiffré[0];
-		int bourrage = Integer.parseInt(messageChiffré[1]);
-		// On le passe en binaire 
-		String messageADechiffrer = StringToBinary(messageADechiffrerChaine).toString();
+	public static void DechiffrementThreeFish(int N, String[][] clesTournees){
+		// Message à déchiffrer 
+		// String messageADechiffrerChaine = Utilitaires.Lecture();
+		// messageADechiffrerChaine = messageADechiffrerChaine.substring(0, messageADechiffrerChaine.length()-10);
+		// System.out.println("Message a déchiffrer \n" + messageADechiffrerChaine);
+		
+		// On lit le message binaire chiffré
+		String messageADechiffrer = Utilitaires.Lecture();
+		// On récupère le bourrage binaire
+		String bourrageString = messageADechiffrer.substring(messageADechiffrer.length()-10, messageADechiffrer.length());
+		// On le transforme en int
+		int bourrage = Integer.parseInt(bourrageString, 2);
+		// On enleve les bits bourrés au message initial
+		messageADechiffrer = messageADechiffrer.substring(0, messageADechiffrer.length()-10);
 		// On le découpe en blocs de 64 bits
 		String[] tabTempo2 = messageADechiffrer.split("");		
 		
@@ -412,7 +335,6 @@ public class ThreeFish {
 				messageADechiffrer += tabADechiffrer[i][j];
 			}
 		}
-		// System.out.println("On a bourré " + bourrage + " bits.");
 		// On s'occupe d'enlever le bourrage
 		messageADechiffrer = messageADechiffrer.substring(0, messageADechiffrer.length()- bourrage);
 		
@@ -420,7 +342,7 @@ public class ThreeFish {
 		String messageDechiffré = BinaryToString(messageADechiffrer);
 		System.out.println("\nLe message déchiffré est : ");
 		System.out.println(messageDechiffré);
-		return null;
+		Utilitaires.Ecriture(messageDechiffré, "Déchiffré.txt");
 	}
 	
 	// Fonction qui va gérer la substitution entre 2 mots de 64 bits
@@ -627,8 +549,9 @@ public class ThreeFish {
 	}
 
 	public static void main(String[] args) {
-		System.out.println("Bonjour et bienvenue dans le chiffrement symétrique ThreeFish.\nVous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
 		Scanner scan = new Scanner( System.in );
+		System.out.println("Bonjour et bienvenue dans le chiffrement symétrique ThreeFish.\n");
+		System.out.println("Vous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
 		int user_input = scan.nextInt();
 		// On choisi ici entre 256, 512 ou 1024 pour la génération de la clé
 		String cle = GenerationCle(user_input);
@@ -644,7 +567,7 @@ public class ThreeFish {
 		break;
 		default: System.out.println("La taille de la clé n'est pas correcte");
 		break;
-		}
+		}		
 		// On rend la clé binaire
 		String cleBinary = StringToBinary(cle).toString();
 		// On génère les tweaks
@@ -655,16 +578,26 @@ public class ThreeFish {
 		// On génère les clés de tournées
 		String[][] clesTournees = new String[20][N];
 		clesTournees = GenerationClesTournees(sousCles, tweaks);
-		// On chiffre
-		String[] chiffréEtBourrage = ChiffrementThreeFish("test.txt", N, clesTournees);
-		
-		// On dechiffre
-		DechiffrementThreeFish(chiffréEtBourrage, N, clesTournees);
+		user_input = 1;
+		while (user_input == 1 || user_input == 2 || user_input == 3){
+			System.out.println("Que voulez vous faire ?\n1-Chiffrer\n2-Dechiffrer\n3-Chiffrer et Dechiffrer");
+			user_input = scan.nextInt();
+			switch (user_input) {
+			case 1:
+				ChiffrementThreeFish(N, clesTournees);
+				break;
+			case 2:
+				DechiffrementThreeFish(N, clesTournees);
+				break;
+			case 3: 
+				ChiffrementThreeFish(N, clesTournees);
+				DechiffrementThreeFish(N, clesTournees);
+			default:
+				System.out.println("Entree non reconnue, fin du programme !");
+				break;
+			}
+		}
 		// On ferme le scanner
 		scan.close();
-		
 	}
-
-	
-
 }
