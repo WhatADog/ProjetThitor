@@ -1,6 +1,5 @@
 
 import java.util.Scanner;
-import GUnGrosPaquet.Utilitaires;
 
 // Classe qui va permettre de réaliser un chiffrement / déchiffrement avec ThreeFish, algorithme de chiffrement symétrique.
 public class ThreeFish {
@@ -173,15 +172,14 @@ public class ThreeFish {
 		}*/
 	}
 	
-	public static void ChiffrementThreeFish(int N, String[][] clesTournees){
+	public static void ChiffrementThreeFish(int N, String[][] clesTournees, int mode){
 				// Message à chiffrer
-				String messageAChiffrerChaine = Utilitaires.Lecture();
-				
+				System.out.println("Selectionnez le fichier à chiffrer !");
+				String messageAChiffrerChaine = Utilitaires.Lecture();				
 				// On le passe en binaire
 				String messageAChiffrer = StringToBinary(messageAChiffrerChaine).toString();
 				// On le découpe en blocs de 64 bits
-				String[] tabTempo = messageAChiffrer.split("");		
-				
+				String[] tabTempo = messageAChiffrer.split("");				
 				// On calcule la taille de notre message à chiffrer pour savoir comment le stocker
 				int tailleMessage = tabTempo.length;
 				// On regarde la taille des mots qu'on souhaite obtenir (256, 512 ou 1024)
@@ -214,25 +212,69 @@ public class ThreeFish {
 						}
 						tabAChiffrer[i][j] = tempo;
 					}			
-				}
-				
+				}				
 				// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
 				// Pour chaque mot on va appliquer le chiffrement : ECB
-				for (int i = 0; i < nombreSousMessage; i++){
-					for(int j = 0; j < 20; j++){
-						for(int k = 0; k <N; k++){
-							// On xor le message avec les clés de tournées
-							tabAChiffrer[i][k] = xor(tabAChiffrer[i][k],clesTournees[i][k]);
-						}
-						// On effectue 4 mix + Permute
-						for(int l = 0; l < 4; l++){
-							tabAChiffrer[i] = Substitution(tabAChiffrer[i]);
-							for(int m = 0; m < N; m++){
-								tabAChiffrer[i][m] = Permutation(tabAChiffrer[i][m]);
+				if(mode == 0){					
+					for (int i = 0; i < nombreSousMessage; i++){
+						// Pour chaque tournée
+						for(int j = 0; j < 20; j++){
+							for(int k = 0; k <N; k++){
+								// On xor le message avec les clés de tournées
+								tabAChiffrer[i][k] = xor(tabAChiffrer[i][k],clesTournees[j][k]);
+							}
+							// On effectue 4 mix + Permute
+							for(int l = 0; l < 4; l++){
+								tabAChiffrer[i] = Substitution(tabAChiffrer[i]);
+								for(int m = 0; m < N; m++){
+									tabAChiffrer[i][m] = Permutation(tabAChiffrer[i][m]);
+								}
 							}
 						}
 					}
 				}
+				// Pour chaque mot on va appliquer le chiffrement : CBC
+				else{
+					String vecteurInit = "On va générer un vecteur d'initialisation de 256, 512 ou 1024 bits en fonction "
+							+ "de la taille des blocs de texte clair. On va ensuite ce servir de ce vecteur d'initialisation pour"
+							+ "xorer a l'etape 1";
+					// En fonction de la taille des blocs la taille du vecteur va varier
+					vecteurInit = vecteurInit.substring(0,8*N);
+					String vecteurInitBinaire = StringToBinary(vecteurInit).toString();
+					// Pour chaque bloc en clair on xor avec le chiffré precedent (ou avec IV si premier bloc)
+					for (int i = 0; i < nombreSousMessage; i++){
+						String[] tempo = new String[N];
+						if(i == 0){
+							// On xor le bloc clair #0 avec le vecteur d'initialisation
+							tempo = BlocEnMots(xor(MotsEnBloc(tabAChiffrer[i], N),vecteurInitBinaire), N);
+							for(int j = 0; j < N; j++){
+								tabAChiffrer[i][j] = tempo[j];
+							}
+						}
+						else{
+							// On xor le bloc clair #i avec le chiffré (i-1)
+							tempo = BlocEnMots(xor(MotsEnBloc(tabAChiffrer[i], N), MotsEnBloc(tabAChiffrer[i-1], N)), N);
+							for(int j = 0; j < N; j++){
+								tabAChiffrer[i][j] = tempo[j];
+							}
+						}
+						// Pour chaque tournée
+						for(int j = 0; j < 20; j++){
+							// On xor le message avec les clés de tournées
+							for(int k = 0; k <N; k++){								
+								tabAChiffrer[i][k] = xor(tabAChiffrer[i][k],clesTournees[j][k]);
+							}
+							// On effectue 4 mix + Permute
+							for(int l = 0; l < 4; l++){
+								tabAChiffrer[i] = Substitution(tabAChiffrer[i]);
+								for(int m = 0; m < N; m++){
+									tabAChiffrer[i][m] = Permutation(tabAChiffrer[i][m]);
+								}
+							}
+						}
+					}
+				}
+				
 				
 				// On remet le tabAChiffrer sous forme de String
 				messageAChiffrer = "";
@@ -252,18 +294,14 @@ public class ThreeFish {
 				messageAChiffrer += bourrageString;
 
 				System.out.println("Message avant chiffrement : \n" + messageAChiffrerChaine);
-				System.out.println("\nLe message chiffré est : " + messageAChiffrer);
+				// System.out.println("\nLe message chiffré est : " + messageAChiffrer);
 				Utilitaires.Ecriture(messageAChiffrer, "Chiffré.txt");
 	}
 		
 	
-	public static void DechiffrementThreeFish(int N, String[][] clesTournees){
-		// Message à déchiffrer 
-		// String messageADechiffrerChaine = Utilitaires.Lecture();
-		// messageADechiffrerChaine = messageADechiffrerChaine.substring(0, messageADechiffrerChaine.length()-10);
-		// System.out.println("Message a déchiffrer \n" + messageADechiffrerChaine);
-		
+	public static void DechiffrementThreeFish(int N, String[][] clesTournees, int mode){		
 		// On lit le message binaire chiffré
+		System.out.println("Selectionnez le message à dechiffrer !");
 		String messageADechiffrer = Utilitaires.Lecture();
 		// On récupère le bourrage binaire
 		String bourrageString = messageADechiffrer.substring(messageADechiffrer.length()-10, messageADechiffrer.length());
@@ -271,6 +309,7 @@ public class ThreeFish {
 		int bourrage = Integer.parseInt(bourrageString, 2);
 		// On enleve les bits bourrés au message initial
 		messageADechiffrer = messageADechiffrer.substring(0, messageADechiffrer.length()-10);
+		System.out.println("Message à déchiffrer : " + messageADechiffrer);
 		// On le découpe en blocs de 64 bits
 		String[] tabTempo2 = messageADechiffrer.split("");		
 		
@@ -310,23 +349,65 @@ public class ThreeFish {
 		
 		// Boucle qui va gérer les 76 tournées avec les 20 ajouts de clés
 		// Pour chaque mot on va appliquer le déchiffrement : ECB
-		for (int i = 0; i < nombreSousMessageADechiffrer; i++){
-			for(int j = 0; j < 20; j++){				
-				// On effectue 4 mix + Permute
-				for(int l = 0; l < 4; l++){
-					for(int m = 0; m < N; m++){
-						tabADechiffrer[i][m] = Permutation(tabADechiffrer[i][m]);
+		if(mode == 0){
+			for (int i = 0; i < nombreSousMessageADechiffrer; i++){
+				for(int j = 19; j >= 0; j--){				
+					// On effectue 4 mix + Permute
+					for(int l = 0; l < 4; l++){
+						for(int m = 0; m < N; m++){
+							tabADechiffrer[i][m] = Permutation(tabADechiffrer[i][m]);
+						}
+						tabADechiffrer[i] = AntiSubstitution(tabADechiffrer[i]);
+						
 					}
-					tabADechiffrer[i] = AntiSubstitution(tabADechiffrer[i]);
 					
-				}
-				
-				for(int k = 0; k <N; k++){
-					// On xor le message avec les clés de tournées
-					tabADechiffrer[i][k] = xor(tabADechiffrer[i][k],clesTournees[i][k]);
+					for(int k = 0; k <N; k++){
+						// On xor le message avec les clés de tournées
+						tabADechiffrer[i][k] = xor(tabADechiffrer[i][k],clesTournees[j][k]);
+					}
 				}
 			}
 		}
+		// Pour chaque mot on va appliquer le déchiffrement CBC
+		else{
+			String vecteurInit = "On va générer un vecteur d'initialisation de 256, 512 ou 1024 bits en fonction "
+					+ "de la taille des blocs de texte clair. On va ensuite ce servir de ce vecteur d'initialisation pour"
+					+ "xorer a l'etape 1";
+			// En fonction de la taille des blocs la taille du vecteur va varier
+			vecteurInit = vecteurInit.substring(0,8*N);
+			String vecteurInitBinaire = StringToBinary(vecteurInit).toString();
+			for (int i = nombreSousMessageADechiffrer-1; i >= 0 ; i--){
+				for(int j = 19; j >= 0; j--){				
+					// On effectue 4 mix + Permute
+					for(int l = 0; l < 4; l++){
+						for(int m = 0; m < N; m++){
+							tabADechiffrer[i][m] = Permutation(tabADechiffrer[i][m]);
+						}
+						tabADechiffrer[i] = AntiSubstitution(tabADechiffrer[i]);
+						
+					}
+					
+					for(int k = 0; k <N; k++){
+						// On xor le message avec les clés de tournées
+						tabADechiffrer[i][k] = xor(tabADechiffrer[i][k],clesTournees[j][k]);
+					}
+				}
+				String[] tempo = new String[N];
+				if(i == 0){
+					tempo = BlocEnMots(xor(MotsEnBloc(tabADechiffrer[i], N), vecteurInitBinaire), N);
+					for(int z = 0; z < N; z++){
+						tabADechiffrer[i][z] = tempo[z];
+					}
+				}
+				else{
+					tempo = BlocEnMots(xor(MotsEnBloc(tabADechiffrer[i], N),MotsEnBloc(tabADechiffrer[i-1], N)), N);
+					for(int z = 0; z < N; z++){
+						tabADechiffrer[i][z] = tempo[z];
+					}
+				}
+			}
+		}
+		
 		
 		// On remet le tabAChiffrer sous forme de String
 		messageADechiffrer = "";
@@ -343,6 +424,24 @@ public class ThreeFish {
 		System.out.println("\nLe message déchiffré est : ");
 		System.out.println(messageDechiffré);
 		Utilitaires.Ecriture(messageDechiffré, "Déchiffré.txt");
+	}
+	
+	// Fonction qui va transformer un bloc en N mots de 64 bits
+	public static String[] BlocEnMots(String bloc, int N){
+		String[] mots = new String[N];
+		for (int i = 0; i < N; i++){
+			mots[i] = bloc.substring(i*64, (i+1)*64);
+		}
+		return mots;		
+	}
+	
+	// Fonction qui va transformer N mots de 64 bits en un bloc
+	public static String MotsEnBloc(String[] mots, int N){
+		String bloc = "";
+		for (int i = 0; i < N; i++){
+			bloc += mots[i];
+		}
+		return bloc;		
 	}
 	
 	// Fonction qui va gérer la substitution entre 2 mots de 64 bits
@@ -543,6 +642,7 @@ public class ThreeFish {
 		}
 		catch(ArrayIndexOutOfBoundsException exception){
 			System.out.println("Les chaines envoyées n'ont pas la meme taille, impossible de xorer");
+			System.out.println("La premiere chaine fait : " + str1.length() + " alors que la deuxième fait : " + str2.length());
 			return null;
 		}
 		
@@ -578,25 +678,36 @@ public class ThreeFish {
 		// On génère les clés de tournées
 		String[][] clesTournees = new String[20][N];
 		clesTournees = GenerationClesTournees(sousCles, tweaks);
-		user_input = 1;
-		while (user_input == 1 || user_input == 2 || user_input == 3){
-			System.out.println("Que voulez vous faire ?\n1-Chiffrer\n2-Dechiffrer\n3-Chiffrer et Dechiffrer");
+		do{
+			System.out.println("\nQue voulez vous faire ?\n1-Chiffrer en mode ECB\n2-Chiffrer en mode CBC\n3-Dechiffrer en mode ECB\n4-Dechiffrer en mode CBC\n5-Chiffrer et Dechiffrer en mode ECB\n6-Chiffrer et Dechiffrer en mode CBC");
 			user_input = scan.nextInt();
 			switch (user_input) {
 			case 1:
-				ChiffrementThreeFish(N, clesTournees);
+				ChiffrementThreeFish(N, clesTournees, 0);
 				break;
 			case 2:
-				DechiffrementThreeFish(N, clesTournees);
+				ChiffrementThreeFish(N, clesTournees, 1);
 				break;
-			case 3: 
-				ChiffrementThreeFish(N, clesTournees);
-				DechiffrementThreeFish(N, clesTournees);
+			case 3:
+				DechiffrementThreeFish(N, clesTournees, 0);
+				break;
+			case 4:
+				DechiffrementThreeFish(N, clesTournees, 1);
+				break;
+			case 5: 
+				ChiffrementThreeFish(N, clesTournees, 0);
+				DechiffrementThreeFish(N, clesTournees, 0);
+				break;
+			case 6: 
+				ChiffrementThreeFish(N, clesTournees, 1);
+				DechiffrementThreeFish(N, clesTournees, 1);
+				break;
 			default:
 				System.out.println("Entree non reconnue, fin du programme !");
 				break;
 			}
 		}
+		while (user_input <= 6 && user_input >= 1);
 		// On ferme le scanner
 		scan.close();
 	}
