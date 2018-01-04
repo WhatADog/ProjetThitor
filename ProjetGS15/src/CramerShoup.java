@@ -6,12 +6,9 @@ import java.util.Random;
 
 public class CramerShoup {
 
-	private static ArrayList<Long> nb_premiers = new ArrayList<Long>();
 	private static int bitNumber = 128;
 
-	public CramerShoup(){
-
-	}
+	public CramerShoup(){}
 
 	public static ArrayList<Long> genElementGenerateurSurNonFriable(BigInteger bi){
 		BigInteger ordreRecherche = new BigInteger(bi.toByteArray());
@@ -32,14 +29,15 @@ public class CramerShoup {
 		return result;
 	}
 
-	public static void main(String[] args) {
-		Random rnd = new Random();
+	public static void generationClePubliquePrivee(){
+		Random rnd = new Random(); //Creation generateur de nombres pseudo alétoire
 
-		BigInteger p = new BigInteger(bitNumber*2, 100, rnd);
-		BigInteger deriv = new BigInteger(p.toByteArray());
+		BigInteger p = new BigInteger(bitNumber*2, 100, rnd); //p est créé 2 fois plus grand pour être de manière sur plus grand que toutes les autres variables
+		BigInteger deriv = new BigInteger(p.toByteArray()); //deriv permet de vérifier que p est non friable
 		deriv = deriv.subtract(BigInteger.valueOf(1)).divide(BigInteger.valueOf(2));
 		boolean friable = true;
 
+		//ici, on va tester si p est friable, et s'il l'est, alors on regénère jusqu'à ce qu'il soit non friable
 		if (deriv.isProbablePrime(100)) {
 			friable = false;
 		}
@@ -56,6 +54,7 @@ public class CramerShoup {
 
 		System.out.println("p = "+p.toString());
 
+		//Ici on va générer les autres éléments pour nos clés privée et publique
 		ArrayList<Long> premElemGenerateur = genElementGenerateurSurNonFriable(p);
 
 		BigInteger a1 = new BigInteger(premElemGenerateur.get(premElemGenerateur.size()-1)+"");
@@ -77,6 +76,28 @@ public class CramerShoup {
 		System.out.println("Y = "+majY.toString());
 		System.out.println("W = "+majW.toString());
 
+		Utilitaires.Ecriture(
+		p.toString()+"\n"+a1.toString()+"\n"+a2.toString()+"\n"+majX.toString()+"\n"+majY.toString()+"\n"+majW.toString()+"\n",
+		"./key.pub"
+		);
+
+		Utilitaires.Ecriture(
+		p.toString()+"\n"+a1.toString()+"\n"+a2.toString()+"\n"+x1.toString()+"\n"+x2.toString()+"\n"+y1.toString()+"\n"+y2.toString()+"\n"+w.toString()+"\n",
+		"./key.prv"
+		);
+	}
+
+	public static void chiffrementCramerShoup(){
+		Random rnd = new Random(); //Creation generateur de nombres pseudo alétoire
+
+		String[] variables = Utilitaires.Lecture().split("\n");
+		BigInteger p = new BigInteger(variables[0]);
+		BigInteger a1 = new BigInteger(variables[1]);
+		BigInteger a2 = new BigInteger(variables[2]);
+		BigInteger majX = new BigInteger(variables[3]);
+		BigInteger majY = new BigInteger(variables[4]);
+		BigInteger majW = new BigInteger(variables[5]);
+
 		String messageBrut = Utilitaires.Lecture();
 		byte[] messageClair = messageBrut.getBytes();
 
@@ -87,7 +108,6 @@ public class CramerShoup {
 
 		BigInteger messageChiffrable = new BigInteger(messageClair);
 
-		//Chiffrement
 		BigInteger b = new BigInteger(bitNumber, rnd);
 		BigInteger majB1 = a1.modPow(b, p);
 		BigInteger majB2 = a2.modPow(b, p);
@@ -101,7 +121,29 @@ public class CramerShoup {
 		BigInteger beta = Hashage.getHashFromSHA512(majB1.toString()+majB2.toString()+messageChiffre.toString());
 		BigInteger v_verif = majX.modPow(b, p).multiply(majY.modPow(b.multiply(beta), p)).mod(p);
 
-		//Dechiffrement
+		Utilitaires.Ecriture(
+			majB1.toString()+"\n"+majB2.toString()+"\n"+messageChiffre.toString()+"\n"+v_verif.toString()+"\n",
+			"messageChiffreCS.txt"
+		);
+	}
+
+	public static void dechiffrementCramerShoup(){
+		String[] variables = Utilitaires.Lecture().split("\n");
+		BigInteger p = new BigInteger(variables[0]);
+		BigInteger a1 = new BigInteger(variables[1]);
+		BigInteger a2 = new BigInteger(variables[2]);
+		BigInteger x1 = new BigInteger(variables[3]);
+		BigInteger x2 = new BigInteger(variables[4]);
+		BigInteger y1 = new BigInteger(variables[5]);
+		BigInteger y2 = new BigInteger(variables[6]);
+		BigInteger w = new BigInteger(variables[7]);
+
+		variables = Utilitaires.Lecture().split("\n");
+		BigInteger majB1 = new BigInteger(variables[0]);
+		BigInteger majB2 = new BigInteger(variables[1]);
+		BigInteger messageChiffre = new BigInteger(variables[2]);
+		BigInteger v_verif = new BigInteger(variables[3]);
+
 		BigInteger betaPrime = Hashage.getHashFromSHA512(majB1.toString()+majB2.toString()+messageChiffre.toString());
 		BigInteger v_verifPrime = majB1.modPow(x1, p).multiply(majB2.modPow(x2, p)).multiply(majB1.modPow(y1, p).modPow(betaPrime, p)).mod(p).multiply(majB2.modPow(y2, p).modPow(betaPrime, p)).mod(p);
 
@@ -116,6 +158,17 @@ public class CramerShoup {
 		messageDechiffre = messageDechiffre.multiply(invB1poww).mod(p);
 
 		System.out.println("m dechiffre = "+messageDechiffre.toString());
+
+		byte[] messageDechiffreByte = messageDechiffre.toByteArray();
+		for (byte b :messageDechiffreByte ) {
+			System.out.print((char)b);
+		}
+		System.out.println("\nFin message");
 	}
 
+	public static void main(String[] args) {
+		generationClePubliquePrivee();
+		chiffrementCramerShoup();
+		dechiffrementCramerShoup();
+	}
 }
