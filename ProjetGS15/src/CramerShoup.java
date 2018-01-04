@@ -76,6 +76,8 @@ public class CramerShoup {
 		System.out.println("Y = "+majY.toString());
 		System.out.println("W = "+majW.toString());
 
+		//On écrit ici le fichier de clé public (key.pub dans le répertoire courant), puis le fichier de clé privée ()
+
 		Utilitaires.Ecriture(
 		p.toString()+"\n"+a1.toString()+"\n"+a2.toString()+"\n"+majX.toString()+"\n"+majY.toString()+"\n"+majW.toString()+"\n",
 		"./key.pub"
@@ -90,6 +92,8 @@ public class CramerShoup {
 	public static void chiffrementCramerShoup(){
 		Random rnd = new Random(); //Creation generateur de nombres pseudo alétoire
 
+		//on récupère ici les différentes variables de clé publique
+
 		String[] variables = Utilitaires.Lecture().split("\n");
 		BigInteger p = new BigInteger(variables[0]);
 		BigInteger a1 = new BigInteger(variables[1]);
@@ -97,6 +101,8 @@ public class CramerShoup {
 		BigInteger majX = new BigInteger(variables[3]);
 		BigInteger majY = new BigInteger(variables[4]);
 		BigInteger majW = new BigInteger(variables[5]);
+
+		//on récupère ici le message à chiffrer
 
 		String messageBrut = Utilitaires.Lecture();
 		byte[] messageClair = messageBrut.getBytes();
@@ -117,7 +123,7 @@ public class CramerShoup {
 		System.out.println("mes clair = "+messageChiffrable.toString());
 		System.out.println("m chiffre = "+messageChiffre.toString());
 
-		//verif
+		//Génération des variables de vérification du chiffré
 		BigInteger beta = Hashage.getHashFromSHA512(majB1.toString()+majB2.toString()+messageChiffre.toString());
 		BigInteger v_verif = majX.modPow(b, p).multiply(majY.modPow(b.multiply(beta), p)).mod(p);
 
