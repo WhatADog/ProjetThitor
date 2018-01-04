@@ -28,9 +28,32 @@ public class Hashage {
 		}
 	}
 
+	public static void generationHashSHA512fromFileBIformat(){
+		String messageBrut = Utilitaires.Lecture();
+		BigInteger hash = getHashFromSHA512(messageBrut);
+
+		Utilitaires.Ecriture(
+			hash.toString()+"\n",
+			"./hash_sha512.txt"
+		);
+	}
+
+	public static void verificationHashSHA512fromFileBIformat(){
+		String messageBrut = Utilitaires.Lecture();
+		BigInteger hash = getHashFromSHA512(messageBrut);
+
+		BigInteger hashTeste = new BigInteger(Utilitaires.Lecture().split("\n")[0]);
+
+		if(hash.equals(hashTeste))
+			System.out.println("Hash valide");
+		else
+			System.out.println("Hash non valide");
+
+	}
+
 	public static void main(String[] args) {
-		String message = Utilitaires.Lecture();
-		getHashFromSHA512(message);
+		generationHashSHA512fromFileBIformat();
+		verificationHashSHA512fromFileBIformat();
 	}
 
 }
