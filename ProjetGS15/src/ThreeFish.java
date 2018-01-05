@@ -649,37 +649,17 @@ public class ThreeFish {
 	
 	public static void Initialisation(Scanner scan){
 		System.out.println("Bonjour et bienvenue dans le chiffrement symétrique ThreeFish.\n");
-		System.out.println("Vous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
-		int user_input = scan.nextInt();
 		// On choisi ici entre 256, 512 ou 1024 pour la génération de la clé
-		String cle = GenerationCle(user_input);
-		// Le nombre de découpage qu'on va faire sur la clé
-		int N = 0;
-		// En fonction de la taille de la clé on en déduit le nombre de découpage de la clé
-		switch(cle.length()){
-		case 32: N=4;
-		break;
-		case 64: N=8;
-		break;
-		case 128: N=16;
-		break;
-		default: System.out.println("La taille de la clé n'est pas correcte");
-		break;
-		}		
-		// On rend la clé binaire
-		String cleBinary = StringToBinary(cle).toString();
-		// On génère les tweaks
-		String [] tweaks = new String[3];
-		tweaks = GenerationTweaks(cleBinary, N);
-		// On génère toutes les clés
-		String[] sousCles = GenerationSousCles(cleBinary, tweaks ,N);
-		// On génère les clés de tournées
-		String[][] clesTournees = new String[20][N];
-		clesTournees = GenerationClesTournees(sousCles, tweaks);		
-
+		System.out.println("Vous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
+		int tailleCle = scan.nextInt();
+		int user_input = 0;
 		do{
 			System.out.println("\nQue voulez vous faire ?\n1-Chiffrer en mode ECB\n2-Chiffrer en mode CBC\n3-Dechiffrer en mode ECB\n4-Dechiffrer en mode CBC\n5-Chiffrer et Dechiffrer en mode ECB\n6-Chiffrer et Dechiffrer en mode CBC");
 			user_input = scan.nextInt();
+			int N = tailleCle/64;
+			// On calcule et on stocke les cles de tournees
+			String[][] clesTournees = new String[20][N];
+			clesTournees = generationCles(scan,tailleCle);
 			switch (user_input) {
 			case 1:
 				ChiffrementThreeFish(N, clesTournees, 0);
@@ -708,6 +688,38 @@ public class ThreeFish {
 		}
 		while (user_input <= 6 && user_input >= 1);
 	}
+	
+	// Fonction qui va s'occuper de generer une cle à partir d'un mot de passe et generer par la suite les cles de tournée et les tweaks
+	public static String[][] generationCles(Scanner scan, int tailleCle){
+		// On genere un hash de taille correspondant
+		String cle = Hashage.generationHashThreeFish(scan, tailleCle);
+		System.out.println(cle.length());
+		// Le nombre de découpage qu'on va faire sur la clé
+		int N = 0;
+		// En fonction de la taille de la clé on en déduit le nombre de découpage de la clé
+		switch(cle.length()){
+		case 32: N=4;
+		break;
+		case 64: N=8;
+		break;
+		case 128: N=16;
+		break;
+		default: System.out.println("La taille de la clé n'est pas correcte");
+		break;
+		}		
+		// On rend la clé binaire
+		String cleBinary = StringToBinary(cle).toString();
+		// On génère les tweaks
+		String [] tweaks = new String[3];
+		tweaks = GenerationTweaks(cleBinary, N);
+		// On génère toutes les clés
+		String[] sousCles = GenerationSousCles(cleBinary, tweaks ,N);
+		// On génère les clés de tournées
+		String[][] clesTournees = new String[20][N];
+		clesTournees = GenerationClesTournees(sousCles, tweaks);
+		return clesTournees;
+	}
+	
 
 	public static void main(String[] args) {
 		Scanner scan = new Scanner( System.in );
