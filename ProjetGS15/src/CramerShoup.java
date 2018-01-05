@@ -79,12 +79,12 @@ public class CramerShoup {
 		//On écrit ici le fichier de clé public (key.pub dans le répertoire courant), puis le fichier de clé privée ()
 
 		Utilitaires.Ecriture(
-		p.toString()+"\n"+a1.toString()+"\n"+a2.toString()+"\n"+majX.toString()+"\n"+majY.toString()+"\n"+majW.toString()+"\n",
+		p.toString()+" "+a1.toString()+" "+a2.toString()+" "+majX.toString()+" "+majY.toString()+" "+majW.toString()+" ",
 		"./key.pub"
 		);
 
 		Utilitaires.Ecriture(
-		p.toString()+"\n"+a1.toString()+"\n"+a2.toString()+"\n"+x1.toString()+"\n"+x2.toString()+"\n"+y1.toString()+"\n"+y2.toString()+"\n"+w.toString()+"\n",
+		p.toString()+" "+a1.toString()+" "+a2.toString()+" "+x1.toString()+" "+x2.toString()+" "+y1.toString()+" "+y2.toString()+" "+w.toString()+" ",
 		"./key.prv"
 		);
 	}
@@ -93,8 +93,7 @@ public class CramerShoup {
 		Random rnd = new Random(); //Creation generateur de nombres pseudo alétoire
 
 		//on récupère ici les différentes variables de clé publique
-
-		String[] variables = Utilitaires.Lecture().split("\n");
+		String[] variables = Utilitaires.Lecture("key.pub").split(" ");
 		BigInteger p = new BigInteger(variables[0]);
 		BigInteger a1 = new BigInteger(variables[1]);
 		BigInteger a2 = new BigInteger(variables[2]);
@@ -128,13 +127,13 @@ public class CramerShoup {
 		BigInteger v_verif = majX.modPow(b, p).multiply(majY.modPow(b.multiply(beta), p)).mod(p);
 
 		Utilitaires.Ecriture(
-			majB1.toString()+"\n"+majB2.toString()+"\n"+messageChiffre.toString()+"\n"+v_verif.toString()+"\n",
+			majB1.toString()+" "+majB2.toString()+" "+messageChiffre.toString()+" "+v_verif.toString()+" ",
 			"messageChiffreCS.txt"
 		);
 	}
 
 	public static void dechiffrementCramerShoup(){
-		String[] variables = Utilitaires.Lecture().split("\n");
+		String[] variables = Utilitaires.Lecture("key.prv").split(" ");
 		BigInteger p = new BigInteger(variables[0]);
 		BigInteger a1 = new BigInteger(variables[1]);
 		BigInteger a2 = new BigInteger(variables[2]);
@@ -144,7 +143,7 @@ public class CramerShoup {
 		BigInteger y2 = new BigInteger(variables[6]);
 		BigInteger w = new BigInteger(variables[7]);
 
-		variables = Utilitaires.Lecture().split("\n");
+		variables = Utilitaires.Lecture().split(" ");
 		BigInteger majB1 = new BigInteger(variables[0]);
 		BigInteger majB2 = new BigInteger(variables[1]);
 		BigInteger messageChiffre = new BigInteger(variables[2]);
