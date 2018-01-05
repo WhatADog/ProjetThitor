@@ -2,29 +2,8 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 public class VcesTrueRSA {
 
-	// Fonction pour r�cuperer un entier
-	public static int recupererInt() {
-        int userValue = 0;
-        boolean erreur = false;
-        Scanner scan = new Scanner(System.in);
-
-        //Bloc d'essai (pour s'assurer qu'on r�cup�re bien un entier
-        do {
-            try {
-                userValue = scan.nextInt();
-                erreur = false;
-            } catch (InputMismatchException e) {
-                System.out.println("\nCe n'est pas une valeur prise en charge, veuillez r�essayer.");
-                erreur = true;
-                scan.next();
-            }
-        } while (erreur);
-        scan.close();
-        return userValue;
-    }
-
 	public static void main (String[] args){
-		Scanner user_input = new Scanner( System.in );
+		Scanner scan = new Scanner( System.in );
 		System.out.println("Selectionner votre fonction de chiffrement : \t");
 		System.out.println("->1<- Chiffrement sym�trique ThreeFish\t");
 		System.out.println("->2<- Chiffrement de Cramer-Shoup\t");
@@ -33,12 +12,14 @@ public class VcesTrueRSA {
 		System.out.println("->5<- D�chiffrement de Cramer-Shoup\t");
 		System.out.println("->6<- V�rification d'un hash\t");
 		System.out.println("->7<- Génération de clés pour Cramer-Shoup\t");
+		System.out.println("->8<- Fin du programme");
 
-		int iChoixUser = recupererInt();
+		int iChoixUser = scan.nextInt();
 		switch (iChoixUser) {
 		case 1: System.out.println("Appel de la fonction de Chiffrement sym�trique ThreeFish");
+		ThreeFish.Initialisation(scan);
 		break;
-		case 2: System.out.println("Appel de la fonction de Chiffrement Cramer-Shoup \nVeuillez selectionnez le fichier de clé publique, puis le message à chiffrer");
+		case 2: System.out.println("Appel de la fonction de Chiffrement Cramer-Shoup \nVeuillez selectionnez le message � chiffrer");
 		CramerShoup.chiffrementCramerShoup();
 		break;
 		case 3: System.out.println("Appel de la fonction Hashage d'un message \nVeuillez sélectionner le fichier à Hasher");
@@ -55,10 +36,12 @@ public class VcesTrueRSA {
 		case 7: System.out.println("Appel de la fonction de génération de clé pour Cramer-Shoup");
 		CramerShoup.generationClePubliquePrivee();
 		break;
+		case 8: System.out.println("Fin du programme, bonne journ�e");
+		break;			
 		default: System.out.println("Entr�e invalide veuillez recommencer !");
 		break;
 		}
-		user_input.close();
+		scan.close();
 
 	}
 
