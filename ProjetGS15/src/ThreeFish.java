@@ -540,7 +540,6 @@ public class ThreeFish {
 	}
 	
 	private static String AdditionModulaire(String str1, String str2) {
-		// TODO Auto-generated method stub
 		boolean retenue = false;
 		// On stocke le string le plus long dans str1
 		if(str1.length() < str2.length()){
@@ -648,7 +647,7 @@ public class ThreeFish {
 		
 	}
 	
-	public static String Initialisation(Scanner scan){
+	public static void Initialisation(Scanner scan){
 		System.out.println("Bonjour et bienvenue dans le chiffrement symétrique ThreeFish.\n");
 		System.out.println("Vous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
 		int user_input = scan.nextInt();
@@ -676,14 +675,8 @@ public class ThreeFish {
 		String[] sousCles = GenerationSousCles(cleBinary, tweaks ,N);
 		// On génère les clés de tournées
 		String[][] clesTournees = new String[20][N];
-		clesTournees = GenerationClesTournees(sousCles, tweaks);
-		Choix(clesTournees, scan, N);
-		return null;
-		
-	}
-	
-	public static void Choix(String[][] clesTournees, Scanner scan, int N) {
-		int user_input = 0;
+		clesTournees = GenerationClesTournees(sousCles, tweaks);		
+
 		do{
 			System.out.println("\nQue voulez vous faire ?\n1-Chiffrer en mode ECB\n2-Chiffrer en mode CBC\n3-Dechiffrer en mode ECB\n4-Dechiffrer en mode CBC\n5-Chiffrer et Dechiffrer en mode ECB\n6-Chiffrer et Dechiffrer en mode CBC");
 			user_input = scan.nextInt();
