@@ -1,6 +1,7 @@
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 
 public class Hashage {
 
@@ -14,7 +15,6 @@ public class Hashage {
 			System.out.println(hash.toString());
 
 			byte[] byteData = hash.toByteArray();
-
 			return hash; //retourne le Hash du message sous la forme d'un BigInteger pour des raisons pratiques (utilisé dans CramerShoup)
 
 		}
@@ -26,7 +26,6 @@ public class Hashage {
 
 
 	//Genere le hash d'un fichier en entrée, puis écrit le hash dans le fichier hash_sha512.txt du répertoire courant
-
 	public static void generationHashSHA512fromFileBIformat(){
 		String messageBrut = Utilitaires.Lecture();
 		BigInteger hash = getHashFromSHA512(messageBrut);
@@ -36,6 +35,18 @@ public class Hashage {
 			"./hash_sha512.txt"
 		);
 	}
+	
+	//Genere le hash d'un fichier en entrée, puis écrit le hash dans le fichier hash_sha512.txt du répertoire courant
+		public static String generationHashThreeFish(Scanner scan, int tailleCle){
+			System.out.println("Rentrez la cle que vous voulez utiliser pour chifffrer ou d�chiffrer !");
+			scan.nextLine();
+			String messageBrut = scan.nextLine();
+			BigInteger hash = getHashFromSHA512(messageBrut);
+			String hashString = hash.toString();
+			String hashBinary = ThreeFish.StringToBinary(hashString);
+			hashBinary = hashBinary.substring(0,tailleCle/8);
+			return hashBinary;
+		}
 
 	//Permet de comparer le Hash généré d'un fichier, par rapport à un hash enregistré dans un fichier
 	//Et renvoie dans le terminal si les deux Hash sont les mêmes
