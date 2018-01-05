@@ -85,7 +85,7 @@ public class ThreeFish {
 	
 	
 	// Fonction qui va générer les tweaks
-	private static String[] GenerationTweaks(String chaine, int N) {
+	public static String[] GenerationTweaks(String chaine, int N) {
 		String[] cle = chaine.split("");
 		String[] sousCles = new String[N+1];
 		String[] tweaks = new String[3];
@@ -647,9 +647,8 @@ public class ThreeFish {
 		}
 		
 	}
-
-	public static void main(String[] args) {
-		Scanner scan = new Scanner( System.in );
+	
+	public static String Initialisation(Scanner scan){
 		System.out.println("Bonjour et bienvenue dans le chiffrement symétrique ThreeFish.\n");
 		System.out.println("Vous souhaitez utiliser une clé de 256, 512 ou 1024 bits ?");
 		int user_input = scan.nextInt();
@@ -678,6 +677,13 @@ public class ThreeFish {
 		// On génère les clés de tournées
 		String[][] clesTournees = new String[20][N];
 		clesTournees = GenerationClesTournees(sousCles, tweaks);
+		Choix(clesTournees, scan, N);
+		return null;
+		
+	}
+	
+	public static void Choix(String[][] clesTournees, Scanner scan, int N) {
+		int user_input = 0;
 		do{
 			System.out.println("\nQue voulez vous faire ?\n1-Chiffrer en mode ECB\n2-Chiffrer en mode CBC\n3-Dechiffrer en mode ECB\n4-Dechiffrer en mode CBC\n5-Chiffrer et Dechiffrer en mode ECB\n6-Chiffrer et Dechiffrer en mode CBC");
 			user_input = scan.nextInt();
@@ -703,11 +709,17 @@ public class ThreeFish {
 				DechiffrementThreeFish(N, clesTournees, 1);
 				break;
 			default:
-				System.out.println("Entree non reconnue, fin du programme !");
+				System.out.println("Entree non reconnue, fin du chiffrement de ThreeFish !");
 				break;
 			}
 		}
 		while (user_input <= 6 && user_input >= 1);
+	}
+
+	public static void main(String[] args) {
+		Scanner scan = new Scanner( System.in );
+		Initialisation(scan);
+		
 		// On ferme le scanner
 		scan.close();
 	}
