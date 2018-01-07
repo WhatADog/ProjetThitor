@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class Hashage {
 
-	//Permet de gÃ©nÃ©rer une chaine de caractÃ¨res correspondant au Hash d'un fichier digÃ©rÃ© en utilisant SHA512
+	//Permet de générer une chaine de caractères correspondant au Hash d'un fichier digéré en utilisant SHA512
 
 	public static BigInteger getHashFromSHA512(String message){
 		try {
@@ -15,7 +15,7 @@ public class Hashage {
 			System.out.println(hash.toString());
 
 			byte[] byteData = hash.toByteArray();
-			return hash; //retourne le Hash du message sous la forme d'un BigInteger pour des raisons pratiques (utilisÃ© dans CramerShoup)
+			return hash; //retourne le Hash du message sous la forme d'un BigInteger pour des raisons pratiques (utilisé dans CramerShoup)
 
 		}
 		catch (NoSuchAlgorithmException e){
@@ -25,7 +25,7 @@ public class Hashage {
 	}
 
 
-	//Genere le hash d'un fichier en entrÃ©e, puis Ã©crit le hash dans le fichier hash_sha512.txt du rÃ©pertoire courant
+	//Genere le hash d'un fichier en entrée, puis écrit le hash dans le fichier hash_sha512.txt du répertoire courant
 	public static void generationHashSHA512fromFileBIformat(){
 		String messageBrut = Utilitaires.Lecture();
 		BigInteger hash = getHashFromSHA512(messageBrut);
@@ -36,7 +36,7 @@ public class Hashage {
 		);
 	}
 	
-	//Genere le hash d'un fichier en entrÃ©e, puis Ã©crit le hash dans le fichier hash_sha512.txt du rÃ©pertoire courant
+	//Genere le hash d'un fichier en entrée, puis écrit le hash dans le fichier hash_sha512.txt du répertoire courant
 		public static String generationHashThreeFish(Scanner scan, int tailleCle){
 			System.out.println("Rentrez la cle que vous voulez utiliser pour chifffrer ou déchiffrer !");
 			scan.nextLine();
@@ -48,8 +48,8 @@ public class Hashage {
 			return hashBinary;
 		}
 
-	//Permet de comparer le Hash gÃ©nÃ©rÃ© d'un fichier, par rapport Ã  un hash enregistrÃ© dans un fichier
-	//Et renvoie dans le terminal si les deux Hash sont les mÃªmes
+	//Permet de comparer le Hash généré d'un fichier, par rapport à  un hash enregistré dans un fichier
+	//Et renvoie dans le terminal si les deux Hash sont les mêmes
 
 	public static void verificationHashSHA512fromFileBIformat(){
 		String messageBrut = Utilitaires.Lecture();
@@ -64,8 +64,8 @@ public class Hashage {
 
 	}
 
-	//UtilisÃ© pour des besoins de tests
-
+	
+	//Utilisé pour des besoins de tests
 	public static void main(String[] args) {
 		generationHashSHA512fromFileBIformat();
 		verificationHashSHA512fromFileBIformat();

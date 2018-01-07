@@ -19,7 +19,7 @@ public class VcesTrueRSA {
 			case 1: System.out.println("Appel de la fonction de Chiffrement symétrique ThreeFish");
 			ThreeFish.Initialisation(scan);
 			break;
-			case 2: System.out.println("Appel de la fonction de Chiffrement Cramer-Shoup \nVeuillez selectionnez le message à  chiffrer");
+			case 2: System.out.println("Appel de la fonction de Chiffrement Cramer-Shoup \n");
 			CramerShoup.chiffrementCramerShoup();
 			break;
 			case 3: System.out.println("Appel de la fonction Hashage d'un message \nVeuillez sélectionner le fichier à  Hasher");

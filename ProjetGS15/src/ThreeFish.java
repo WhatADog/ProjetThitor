@@ -654,12 +654,16 @@ public class ThreeFish {
 		int tailleCle = scan.nextInt();
 		int user_input = 0;
 		do{
-			System.out.println("\nQue voulez vous faire ?\n1-Chiffrer en mode ECB\n2-Chiffrer en mode CBC\n3-Dechiffrer en mode ECB\n4-Dechiffrer en mode CBC\n5-Chiffrer et Dechiffrer en mode ECB\n6-Chiffrer et Dechiffrer en mode CBC");
+			System.out.println("\nQue voulez vous faire ?\n1-Chiffrer en mode ECB\n2-Chiffrer en mode CBC\n3-Dechiffrer en mode ECB\n4-Dechiffrer en mode CBC\n5-Chiffrer et Dechiffrer en mode ECB\n6-Chiffrer et Dechiffrer en mode CBC\n7-Revenir au menu principal");
 			user_input = scan.nextInt();
 			int N = tailleCle/64;
 			// On calcule et on stocke les cles de tournees
 			String[][] clesTournees = new String[20][N];
-			clesTournees = generationCles(scan,tailleCle);
+			if ( 0 < user_input && user_input<7){
+				clesTournees = generationCles(scan,tailleCle);
+			}
+			
+			
 			switch (user_input) {
 			case 1:
 				ChiffrementThreeFish(N, clesTournees, 0);
@@ -681,6 +685,8 @@ public class ThreeFish {
 				ChiffrementThreeFish(N, clesTournees, 1);
 				DechiffrementThreeFish(N, clesTournees, 1);
 				break;
+			case 7:
+				System.out.println("Retour au menu principal !");
 			default:
 				System.out.println("Entree non reconnue, fin du chiffrement de ThreeFish !");
 				break;
@@ -720,7 +726,7 @@ public class ThreeFish {
 		return clesTournees;
 	}
 	
-
+	//Utilisé pour des besoins de tests
 	public static void main(String[] args) {
 		Scanner scan = new Scanner( System.in );
 		Initialisation(scan);

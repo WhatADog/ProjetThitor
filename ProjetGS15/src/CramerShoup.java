@@ -30,14 +30,14 @@ public class CramerShoup {
 	}
 
 	public static void generationClePubliquePrivee(){
-		Random rnd = new Random(); //Creation generateur de nombres pseudo alÃ©toire
+		Random rnd = new Random(); //Creation generateur de nombres pseudo alétoire
 
-		BigInteger p = new BigInteger(bitNumber*2, 100, rnd); //p est crÃ©Ã© 2 fois plus grand pour Ãªtre de maniÃ¨re sur plus grand que toutes les autres variables
-		BigInteger deriv = new BigInteger(p.toByteArray()); //deriv permet de vÃ©rifier que p est non friable
+		BigInteger p = new BigInteger(bitNumber*2, 100, rnd); //p est créé 2 fois plus grand pour être de manière sur plus grand que toutes les autres variables
+		BigInteger deriv = new BigInteger(p.toByteArray()); //deriv permet de vérifier que p est non friable
 		deriv = deriv.subtract(BigInteger.valueOf(1)).divide(BigInteger.valueOf(2));
 		boolean friable = true;
 
-		//ici, on va tester si p est friable, et s'il l'est, alors on regÃ©nÃ¨re jusqu'Ã  ce qu'il soit non friable
+		//ici, on va tester si p est friable, et s'il l'est, alors on regénère jusqu'à  ce qu'il soit non friable
 		if (deriv.isProbablePrime(100)) {
 			friable = false;
 		}
@@ -54,7 +54,7 @@ public class CramerShoup {
 
 		System.out.println("p = "+p.toString());
 
-		//Ici on va gÃ©nÃ©rer les autres Ã©lÃ©ments pour nos clÃ©s privÃ©e et publique
+		//Ici on va générer les autres éléments pour nos clés privée et publique
 		ArrayList<Long> premElemGenerateur = genElementGenerateurSurNonFriable(p);
 
 		BigInteger a1 = new BigInteger(premElemGenerateur.get(premElemGenerateur.size()-1)+"");
@@ -76,7 +76,7 @@ public class CramerShoup {
 		System.out.println("Y = "+majY.toString());
 		System.out.println("W = "+majW.toString());
 
-		//On Ã©crit ici le fichier de clÃ© public (key.pub dans le rÃ©pertoire courant), puis le fichier de clÃ© privÃ©e ()
+		//On écrit ici le fichier de clé public (key.pub dans le répertoire courant), puis le fichier de clé privée ()
 
 		Utilitaires.Ecriture(
 		p.toString()+" "+a1.toString()+" "+a2.toString()+" "+majX.toString()+" "+majY.toString()+" "+majW.toString()+" ",
@@ -90,10 +90,11 @@ public class CramerShoup {
 	}
 
 	public static void chiffrementCramerShoup(){
-		Random rnd = new Random(); //Creation generateur de nombres pseudo alÃ©toire
+		Random rnd = new Random(); //Creation generateur de nombres pseudo alétoire
 
-		//on rÃ©cupÃ¨re ici les diffÃ©rentes variables de clÃ© publique
-		String[] variables = Utilitaires.Lecture("key.pub").split(" ");
+		//on récupère ici les différentes variables de clé publique
+		System.out.println("Sélectionnez le fichier de clés publiques !");
+		String[] variables = Utilitaires.Lecture().split(" ");
 		BigInteger p = new BigInteger(variables[0]);
 		BigInteger a1 = new BigInteger(variables[1]);
 		BigInteger a2 = new BigInteger(variables[2]);
@@ -101,8 +102,8 @@ public class CramerShoup {
 		BigInteger majY = new BigInteger(variables[4]);
 		BigInteger majW = new BigInteger(variables[5]);
 
-		//on rÃ©cupÃ¨re ici le message Ã  chiffrer
-
+		//on récupère ici le message à  chiffrer
+		System.out.println("Sélectionnez le fichier à chiffrer");
 		String messageBrut = Utilitaires.Lecture();
 		byte[] messageClair = messageBrut.getBytes();
 
@@ -122,7 +123,7 @@ public class CramerShoup {
 		System.out.println("mes clair = "+messageChiffrable.toString());
 		System.out.println("m chiffre = "+messageChiffre.toString());
 
-		//GÃ©nÃ©ration des variables de vÃ©rification du chiffrÃ©
+		//Génération des variables de vérification du chiffré
 		BigInteger beta = Hashage.getHashFromSHA512(majB1.toString()+majB2.toString()+messageChiffre.toString());
 		BigInteger v_verif = majX.modPow(b, p).multiply(majY.modPow(b.multiply(beta), p)).mod(p);
 
@@ -133,7 +134,9 @@ public class CramerShoup {
 	}
 
 	public static void dechiffrementCramerShoup(){
-		String[] variables = Utilitaires.Lecture("key.prv").split(" ");
+		//On récupère ici les différentes variables qui composent la clé privée
+		System.out.println("Sélectionnez le fichier de clés privées !");
+		String[] variables = Utilitaires.Lecture().split(" ");
 		BigInteger p = new BigInteger(variables[0]);
 		BigInteger a1 = new BigInteger(variables[1]);
 		BigInteger a2 = new BigInteger(variables[2]);
@@ -142,35 +145,42 @@ public class CramerShoup {
 		BigInteger y1 = new BigInteger(variables[5]);
 		BigInteger y2 = new BigInteger(variables[6]);
 		BigInteger w = new BigInteger(variables[7]);
-
+		
+		//On récupère ici les différentes variables qui composent notre message chiffré
+		System.out.println("Sélectionnez le fichier à déchiffrer!");
 		variables = Utilitaires.Lecture().split(" ");
 		BigInteger majB1 = new BigInteger(variables[0]);
 		BigInteger majB2 = new BigInteger(variables[1]);
 		BigInteger messageChiffre = new BigInteger(variables[2]);
 		BigInteger v_verif = new BigInteger(variables[3]);
 
+		// On recalcule ici le hash pour ensuite vérifier l'intégrité du message chiffré et ensuite le déchiffrer s'il n'a pas été altéré
 		BigInteger betaPrime = Hashage.getHashFromSHA512(majB1.toString()+majB2.toString()+messageChiffre.toString());
 		BigInteger v_verifPrime = majB1.modPow(x1, p).multiply(majB2.modPow(x2, p)).multiply(majB1.modPow(y1, p).modPow(betaPrime, p)).mod(p).multiply(majB2.modPow(y2, p).modPow(betaPrime, p)).mod(p);
 
-		if(v_verif.equals(v_verifPrime))
+		if(v_verif.equals(v_verifPrime)){
 			System.out.println("Verif juste");
-		else
-			System.out.println("Verif fausse");
-
-		BigInteger messageDechiffre = new BigInteger(messageChiffre.toByteArray());
-		BigInteger invPower = p.subtract(BigInteger.ONE).subtract(w);
-		BigInteger invB1poww = majB1.modPow(invPower, p);
-		messageDechiffre = messageDechiffre.multiply(invB1poww).mod(p);
-
-		System.out.println("m dechiffre = "+messageDechiffre.toString());
-
-		byte[] messageDechiffreByte = messageDechiffre.toByteArray();
-		for (byte b :messageDechiffreByte ) {
-			System.out.print((char)b);
+			BigInteger messageDechiffre = new BigInteger(messageChiffre.toByteArray());
+			BigInteger invPower = p.subtract(BigInteger.ONE).subtract(w);
+			BigInteger invB1poww = majB1.modPow(invPower, p);
+			messageDechiffre = messageDechiffre.multiply(invB1poww).mod(p);
+			
+			//On affiche le message déchiffré dans l'invité de commandes
+			System.out.println("m dechiffre = "+messageDechiffre.toString());
+	
+			byte[] messageDechiffreByte = messageDechiffre.toByteArray();
+			for (byte b :messageDechiffreByte ) {
+				System.out.print((char)b);
+			}
 		}
+		else {
+			System.out.println("Verif fausse");
+		}
+
+		
 		System.out.println("\nFin message");
 	}
-
+	//Utilisé pour des besoins de tests
 	public static void main(String[] args) {
 		generationClePubliquePrivee();
 		chiffrementCramerShoup();

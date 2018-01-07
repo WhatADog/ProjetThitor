@@ -1,90 +1,120 @@
-
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+//Packages à importer afin d'utiliser les objets
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.File;
-import java.io.IOException;
+import java.util.Scanner;
+
 import javax.swing.JFileChooser;
 
 public class Utilitaires {
-	public static String SelectionFichier() {
-	    // Boï¿½te de sï¿½lection de fichier ï¿½ partir du rï¿½pertoire courant
+	public static String SelectionFichier() { 
+	    // Boîte de sélection de fichier à partir du répertoire courant
 	    File repertoireCourant = null;
 	    try {
-	        // obtention d'un objet File qui dï¿½signe le rï¿½pertoire courant. Le
-	        // "getCanonicalFile" n'est pas absolument nï¿½cessaire mais permet
-	        // d'ï¿½viter les /Truc/./Chose/ ...
+	        // obtention d'un objet File qui désigne le répertoire courant. Le
+	        // "getCanonicalFile" n'est pas absolument nécessaire mais permet
+	        // d'éviter les /Truc/./Chose/ ...
 	        repertoireCourant = new File(".").getCanonicalFile();
-	        System.out.println("Rï¿½pertoire courant : " + repertoireCourant);
+	        //System.out.println("Répertoire courant : " + repertoireCourant);
 	    } catch(IOException e) {}
-
-	    // crï¿½ation de la boï¿½te de dialogue dans ce rï¿½pertoire courant
-	    // (ou dans "home" s'il y a eu une erreur d'entrï¿½e/sortie, auquel
+     
+	    // création de la boîte de dialogue dans ce répertoire courant
+	    // (ou dans "home" s'il y a eu une erreur d'entrée/sortie, auquel
 	    // cas repertoireCourant vaut null)
 	    JFileChooser dialogue = new JFileChooser(repertoireCourant);
-
+	     
 	    // affichage
 	    dialogue.showOpenDialog(null);
-
-	    // rï¿½cupï¿½ration du fichier sï¿½lectionnï¿½
-	    System.out.println("Fichier choisi : " + dialogue.getSelectedFile());
+	     
+	    // récupération du fichier sélectionné
+	    System.out.println("\nFichier choisi : " + dialogue.getSelectedFile());
 		return dialogue.getSelectedFile().toString();
 
 	}
-
-
+	
+	// Fonction de lecture sans entrée
 	public static String Lecture() {
-	    // Nous dï¿½clarons nos objets en dehors du bloc try/catch
-		String cible = SelectionFichier();
-	    FileInputStream fis = null;
-	    String result = "";
-
-	    try {
-	       fis = new FileInputStream(new File(cible));
-	       byte[] buf = new byte[8];
-	       int n = 0;
-	       while ((n = fis.read(buf)) >= 0) {
-	          for (byte bit : buf) {
-	             result += (char)bit;
-	          }
-	          buf = new byte[8];
-	       }
-	    } catch (FileNotFoundException e) {
-	       e.printStackTrace();
-	    } catch (IOException e) {
-	       e.printStackTrace();
-	    } finally {
-	       try {
-	          if (fis != null)
-	             fis.close();
-	       } catch (IOException e) {
-	          e.printStackTrace();
-	       }
-	    }
-		return result;
-	 }
-
-	// Fonction qui va permettre d'ï¿½crire dans un fichier
-	public static void Ecriture(String texte, String cible) {
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(new File(cible));
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	       byte[] texteAEcrire = texte.getBytes();
-	       try {
-				fos.write(texteAEcrire);
-				fos.close();
+	    	String cible = SelectionFichier();
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new FileReader(cible));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			String line;
+			String resultat = "";
+			try {
+				while ((line = br.readLine()) != null) {
+				   // process the line.
+					resultat += line;
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			try {
+				br.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return resultat;
+		}
 
-	       System.out.println("Ecriture terminï¿½e");
+	// Fonction de lecture avec en entrée le fichier à lire
+	public static String Lecture(String cible){
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(cible));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String line;
+		String resultat = "";
+		try {
+			while ((line = br.readLine()) != null) {
+			   // process the line.
+				resultat += line;
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			br.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return resultat;
+	}
+	
+	
+	// Fonction qui va permettre d'écrire dans un fichier
+		public static void Ecriture(String texte, String cible) {	      
+			FileOutputStream fos = null;
+			try {
+				fos = new FileOutputStream(new File(cible));
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		       byte[] texteAEcrire = texte.getBytes();
+		       try {
+					fos.write(texteAEcrire);
+					fos.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}		       
+		 }
+	
 
-	 }
 }
